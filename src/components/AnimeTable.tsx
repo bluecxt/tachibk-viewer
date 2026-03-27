@@ -6,7 +6,13 @@ type Props = {
   categories: UiCategory[];
 };
 
-type SortBy = "title" | "dateAdded" | "lastModified" | "episodes" | "tracking" | "source";
+type SortBy =
+  | "title"
+  | "dateAdded"
+  | "lastModified"
+  | "episodes"
+  | "tracking"
+  | "source";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "medium",
@@ -53,7 +59,9 @@ export default function AnimeTable({ anime, categories }: Props) {
 
   const categoryByOrder = useMemo(() => {
     const map = new Map<number, string>();
-    categories.forEach((cat) => map.set(cat.order, cat.name || `Cat ${cat.order}`));
+    categories.forEach((cat) =>
+      map.set(cat.order, cat.name || `Cat ${cat.order}`),
+    );
     return map;
   }, [categories]);
 
@@ -62,7 +70,9 @@ export default function AnimeTable({ anime, categories }: Props) {
     let uncategorized = 0;
     anime.forEach((entry) => {
       if (entry.categories.length === 0) uncategorized += 1;
-      entry.categories.forEach((order) => counts.set(order, (counts.get(order) ?? 0) + 1));
+      entry.categories.forEach((order) =>
+        counts.set(order, (counts.get(order) ?? 0) + 1),
+      );
     });
     return [
       { id: "all", label: "Toutes", count: anime.length },
@@ -81,7 +91,8 @@ export default function AnimeTable({ anime, categories }: Props) {
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     const scoped = anime.filter((item) => {
-      if (activeTab === "uncategorized" && item.categories.length !== 0) return false;
+      if (activeTab === "uncategorized" && item.categories.length !== 0)
+        return false;
       if (activeTab !== "all" && activeTab !== "uncategorized") {
         if (!item.categories.includes(Number(activeTab))) return false;
       }
@@ -97,22 +108,31 @@ export default function AnimeTable({ anime, categories }: Props) {
 
     return scoped.sort((a, b) => {
       const factor = sortDir === "asc" ? 1 : -1;
-      if (sortBy === "title") return factor * a.title.localeCompare(b.title, "fr");
+      if (sortBy === "title")
+        return factor * a.title.localeCompare(b.title, "fr");
       if (sortBy === "dateAdded") return factor * (a.dateAdded - b.dateAdded);
-      if (sortBy === "lastModified") return factor * (a.lastModifiedAt - b.lastModifiedAt);
-      if (sortBy === "episodes") return factor * (a.episodes.length - b.episodes.length);
-      if (sortBy === "tracking") return factor * (a.tracking.length - b.tracking.length);
+      if (sortBy === "lastModified")
+        return factor * (a.lastModifiedAt - b.lastModifiedAt);
+      if (sortBy === "episodes")
+        return factor * (a.episodes.length - b.episodes.length);
+      if (sortBy === "tracking")
+        return factor * (a.tracking.length - b.tracking.length);
       return factor * a.sourceName.localeCompare(b.sourceName, "fr");
     });
   }, [activeTab, anime, filter, onlyFavorites, onlyTracked, sortBy, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount);
-  const visible = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const visible = filtered.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
 
   function formatCategoryList(categoryOrders: number[]) {
     if (categoryOrders.length === 0) return "Aucune";
-    return categoryOrders.map((order) => categoryByOrder.get(order) ?? `ID ${order}`).join(", ");
+    return categoryOrders
+      .map((order) => categoryByOrder.get(order) ?? `ID ${order}`)
+      .join(", ");
   }
 
   return (
@@ -148,7 +168,10 @@ export default function AnimeTable({ anime, categories }: Props) {
           }}
           placeholder="Rechercher titre, URL, source"
         />
-        <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortBy)}>
+        <select
+          value={sortBy}
+          onChange={(event) => setSortBy(event.target.value as SortBy)}
+        >
           <option value="title">Tri: Titre</option>
           <option value="dateAdded">Tri: Date ajout</option>
           <option value="lastModified">Tri: Dernière modif</option>
@@ -156,7 +179,10 @@ export default function AnimeTable({ anime, categories }: Props) {
           <option value="tracking">Tri: Nombre trackers</option>
           <option value="source">Tri: Source</option>
         </select>
-        <select value={sortDir} onChange={(event) => setSortDir(event.target.value as "asc" | "desc")}>
+        <select
+          value={sortDir}
+          onChange={(event) => setSortDir(event.target.value as "asc" | "desc")}
+        >
           <option value="asc">Ordre: Asc</option>
           <option value="desc">Ordre: Desc</option>
         </select>
@@ -198,7 +224,11 @@ export default function AnimeTable({ anime, categories }: Props) {
 
       <div className="entries-list">
         {visible.map((item) => (
-          <article key={item.id} className="entry-card" onClick={() => setSelected(item)}>
+          <article
+            key={item.id}
+            className="entry-card"
+            onClick={() => setSelected(item)}
+          >
             <h3>{item.customTitle || item.title || "(sans titre)"}</h3>
             <p>{item.sourceName || item.source}</p>
             <p>{formatCategoryList(item.categories)}</p>
@@ -212,7 +242,11 @@ export default function AnimeTable({ anime, categories }: Props) {
       </div>
 
       <div className="pager">
-        <button type="button" disabled={safePage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+        <button
+          type="button"
+          disabled={safePage <= 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+        >
           Précédent
         </button>
         <span>
@@ -228,23 +262,59 @@ export default function AnimeTable({ anime, categories }: Props) {
       </div>
 
       {selected && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={() => setSelected(null)}>
-          <div className="modal-content" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="modal-close" onClick={() => setSelected(null)}>
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="modal-content"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="modal-close"
+              onClick={() => setSelected(null)}
+            >
               Fermer
             </button>
             <h3>{selected.customTitle || selected.title || "(sans titre)"}</h3>
             <p className="muted">{selected.sourceName || selected.source}</p>
 
             <div className="detail-grid">
-              <p><span>ID entrée</span><b>{selected.entryId ?? "-"}</b></p>
-              <p><span>Parent ID</span><b>{selected.parentId ?? "-"}</b></p>
-              <p><span>Ajout</span><b>{formatDate(selected.dateAdded)}</b></p>
-              <p><span>Modifié</span><b>{formatDate(selected.lastModifiedAt)}</b></p>
-              <p><span>Favori</span><b>{selected.favorite ? "Oui" : "Non"}</b></p>
-              <p><span>Initialisé</span><b>{selected.initialized ? "Oui" : "Non"}</b></p>
-              <p><span>Épisodes</span><b>{selected.episodes.length}</b></p>
-              <p><span>Trackers</span><b>{selected.tracking.length}</b></p>
+              <p>
+                <span>ID entrée</span>
+                <b>{selected.entryId ?? "-"}</b>
+              </p>
+              <p>
+                <span>Parent ID</span>
+                <b>{selected.parentId ?? "-"}</b>
+              </p>
+              <p>
+                <span>Ajout</span>
+                <b>{formatDate(selected.dateAdded)}</b>
+              </p>
+              <p>
+                <span>Modifié</span>
+                <b>{formatDate(selected.lastModifiedAt)}</b>
+              </p>
+              <p>
+                <span>Favori</span>
+                <b>{selected.favorite ? "Oui" : "Non"}</b>
+              </p>
+              <p>
+                <span>Initialisé</span>
+                <b>{selected.initialized ? "Oui" : "Non"}</b>
+              </p>
+              <p>
+                <span>Épisodes</span>
+                <b>{selected.episodes.length}</b>
+              </p>
+              <p>
+                <span>Trackers</span>
+                <b>{selected.tracking.length}</b>
+              </p>
             </div>
 
             <div className="detail-block">
@@ -266,9 +336,70 @@ export default function AnimeTable({ anime, categories }: Props) {
             <div className="detail-block">
               <h4>Liens</h4>
               <p>{linkOrCode(selected.url)}</p>
-              {selected.thumbnailUrl && <p>{linkOrCode(selected.thumbnailUrl)}</p>}
-              {selected.backgroundUrl && <p>{linkOrCode(selected.backgroundUrl)}</p>}
+              {selected.thumbnailUrl && (
+                <p>{linkOrCode(selected.thumbnailUrl)}</p>
+              )}
+              {selected.backgroundUrl && (
+                <p>{linkOrCode(selected.backgroundUrl)}</p>
+              )}
             </div>
+
+            <div className="detail-block">
+              <h4>Suivi interne</h4>
+              <p>
+                Épisodes vus: {selected.episodes.filter((ep) => ep.seen).length}
+              </p>
+              <p>
+                Épisodes bookmark:{" "}
+                {selected.episodes.filter((ep) => ep.bookmark).length}
+              </p>
+              <p>Historique: {selected.history.length}</p>
+              <p>
+                Dernière lecture interne:{" "}
+                {selected.history.length > 0
+                  ? formatDate(
+                      Math.max(...selected.history.map((h) => h.lastRead)),
+                    )
+                  : "-"}
+              </p>
+            </div>
+
+            {selected.tracking.length > 0 && (
+              <div className="detail-block">
+                <h4>Trackers externes et internes</h4>
+                <div className="kv-list">
+                  {selected.tracking.map((track, index) => {
+                    const isInternal = track.trackerId === 0;
+                    return (
+                      <article
+                        key={`${track.trackerId}-${track.mediaId}-${index}`}
+                        className="kv-item"
+                      >
+                        <h3>
+                          {track.title ||
+                            (isInternal
+                              ? "Tracker interne"
+                              : `Tracker ${track.trackerId}`)}
+                        </h3>
+                        <p>Type: {isInternal ? "Interne" : "Externe"}</p>
+                        <p>Tracker ID: {track.trackerId}</p>
+                        <p>Library ID: {track.libraryId || "-"}</p>
+                        <p>Media ID: {track.mediaId || "-"}</p>
+                        <p>Status: {track.status}</p>
+                        <p>Score: {track.score}</p>
+                        <p>
+                          Progression: {track.lastEpisodeSeen} /{" "}
+                          {track.totalEpisodes || "-"}
+                        </p>
+                        <p>Début: {formatDate(track.startedWatchingDate)}</p>
+                        <p>Fin: {formatDate(track.finishedWatchingDate)}</p>
+                        <p>Lien: {linkOrCode(track.trackingUrl)}</p>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
