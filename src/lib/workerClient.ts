@@ -1,9 +1,14 @@
 import type { UiBackup, WorkerResult } from "./types";
 
-export async function parseBackupWithWorker(file: File): Promise<UiBackup> {
-  const worker = new Worker(new URL("../workers/backupWorker.ts", import.meta.url), {
-    type: "module",
-  });
+export async function parseBackupBufferWithWorker(
+  buffer: ArrayBuffer,
+): Promise<UiBackup> {
+  const worker = new Worker(
+    new URL("../workers/backupWorker.ts", import.meta.url),
+    {
+      type: "module",
+    },
+  );
 
   return new Promise<UiBackup>((resolve, reject) => {
     worker.onmessage = (event: MessageEvent<WorkerResult>) => {
@@ -20,12 +25,11 @@ export async function parseBackupWithWorker(file: File): Promise<UiBackup> {
       reject(new Error(event.message || "Erreur worker"));
     };
 
-    file
-      .arrayBuffer()
-      .then((buffer) => worker.postMessage({ buffer }, [buffer]))
-      .catch((error) => {
-        worker.terminate();
-        reject(error instanceof Error ? error : new Error("Impossible de lire le fichier"));
-      });
+    worker.postMessage({ buffer }, [buffer]);
   });
+}
+
+export async function parseBackupWithWorker(file: File): Promise<UiBackup> {
+  const buffer = await file.arrayBuffer();
+  return parseBackupBufferWithWorker(buffer);
 }

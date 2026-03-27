@@ -1,13 +1,25 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AnimeTable from "./components/AnimeTable";
 import CategoriesSection from "./components/CategoriesSection";
 import PreferenceTable from "./components/PreferenceTable";
 import SourcesSection from "./components/SourcesSection";
 import SummaryCards from "./components/SummaryCards";
-import { parseBackupWithWorker } from "./lib/workerClient";
+import {
+  deleteStoredBackupFile,
+  getStoredBackupFileBuffer,
+  listStoredBackupFiles,
+  saveBackupFile,
+  type StoredBackupFileMeta,
+} from "./lib/historyStorage";
+import { parseBackupBufferWithWorker } from "./lib/workerClient";
 import type { UiBackup } from "./lib/types";
 
-type SectionId = "summary" | "library" | "categories" | "sources" | "preferences";
+type SectionId =
+  | "summary"
+  | "library"
+  | "categories"
+  | "sources"
+  | "preferences";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
@@ -15,6 +27,8 @@ export default function App() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [backup, setBackup] = useState<UiBackup | null>(null);
   const [section, setSection] = useState<SectionId>("library");
+  const [historyFiles, setHistoryFiles] = useState<StoredBackupFileMeta[]>([]);
+  const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
 
   const sections = useMemo(
     () => [
@@ -27,20 +41,71 @@ export default function App() {
     [],
   );
 
+  useEffect(() => {
+    void refreshHistory();
+  }, []);
+
+  async function refreshHistory() {
+    const items = await listStoredBackupFiles();
+    setHistoryFiles(items);
+  }
+
   async function handleFile(file: File) {
     setLoading(true);
     setError(null);
     setFileName(file.name);
     try {
-      const parsed = await parseBackupWithWorker(file);
+      const buffer = await file.arrayBuffer();
+      const parsed = await parseBackupBufferWithWorker(buffer.slice(0));
       setBackup(parsed);
       setSection("library");
+      await saveBackupFile(file, buffer);
+      await refreshHistory();
     } catch (err) {
       setBackup(null);
-      setError(err instanceof Error ? err.message : "Impossible de parser ce fichier");
+      setError(
+        err instanceof Error ? err.message : "Impossible de parser ce fichier",
+      );
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleLoadHistoryItem(item: StoredBackupFileMeta) {
+    setLoading(true);
+    setHistoryLoadingId(item.id);
+    setError(null);
+    try {
+      const buffer = await getStoredBackupFileBuffer(item.id);
+      if (!buffer) {
+        throw new Error("Fichier introuvable dans le stockage local");
+      }
+      const parsed = await parseBackupBufferWithWorker(buffer.slice(0));
+      setBackup(parsed);
+      setFileName(item.name);
+      setSection("library");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Impossible de charger cet historique",
+      );
+    } finally {
+      setLoading(false);
+      setHistoryLoadingId(null);
+    }
+  }
+
+  async function handleDeleteHistoryItem(id: string) {
+    await deleteStoredBackupFile(id);
+    await refreshHistory();
+  }
+
+  function formatShortDate(ts: number) {
+    return new Intl.DateTimeFormat("fr-FR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(ts);
   }
 
   return (
@@ -78,6 +143,39 @@ export default function App() {
             </button>
           ))}
         </nav>
+
+        <section className="history-box">
+          <h2>Historique local</h2>
+          {historyFiles.length === 0 && (
+            <p className="meta-line">Aucun fichier stocké</p>
+          )}
+          {historyFiles.map((item) => (
+            <article key={item.id} className="history-item">
+              <div>
+                <p className="history-name">{item.name}</p>
+                <p className="history-meta">
+                  {Math.round(item.size / 1024)} Ko •{" "}
+                  {formatShortDate(item.importedAt)}
+                </p>
+              </div>
+              <div className="history-actions">
+                <button
+                  type="button"
+                  onClick={() => void handleLoadHistoryItem(item)}
+                  disabled={loading}
+                >
+                  {historyLoadingId === item.id ? "..." : "Ouvrir"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteHistoryItem(item.id)}
+                >
+                  X
+                </button>
+              </div>
+            </article>
+          ))}
+        </section>
       </aside>
 
       <section className="content-zone">
@@ -94,7 +192,11 @@ export default function App() {
           <section className="panel" id="summary">
             <div className="panel-head">
               <h2>Résumé</h2>
-              <p>{backup.isLegacy ? "Format legacy détecté" : "Format moderne détecté"}</p>
+              <p>
+                {backup.isLegacy
+                  ? "Format legacy détecté"
+                  : "Format moderne détecté"}
+              </p>
             </div>
             <SummaryCards backup={backup} />
           </section>
@@ -105,10 +207,15 @@ export default function App() {
         )}
 
         {backup && section === "categories" && (
-          <CategoriesSection anime={backup.anime} categories={backup.categories} />
+          <CategoriesSection
+            anime={backup.anime}
+            categories={backup.categories}
+          />
         )}
 
-        {backup && section === "sources" && <SourcesSection sources={backup.sources} />}
+        {backup && section === "sources" && (
+          <SourcesSection sources={backup.sources} />
+        )}
 
         {backup && section === "preferences" && (
           <PreferenceTable preferences={backup.preferences} />
