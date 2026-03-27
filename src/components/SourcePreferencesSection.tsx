@@ -15,7 +15,7 @@ export default function SourcePreferencesSection({ sourcePreferences }: Props) {
         {sourcePreferences.map((item) => (
           <article key={item.sourceKey} className="kv-item">
             <h3>{item.sourceKey || "(sans clé)"}</h3>
-            <p>Nombre de préférences: {item.prefCount}</p>
+            <p>Nombre de préférences: {item.prefs.length}</p>
           </article>
         ))}
       </div>

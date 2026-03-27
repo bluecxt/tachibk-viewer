@@ -26,18 +26,25 @@ function isExternalTracker(trackerId: number): boolean {
 
 function filterAnimeList(anime: UiAnime[], options: ExportOptions): UiAnime[] {
   return anime.filter((item) => {
-    if (options.categoryFilter !== "all" && !item.categories.includes(options.categoryFilter)) {
+    if (
+      options.categoryFilter !== "all" &&
+      !item.categories.includes(options.categoryFilter)
+    ) {
       return false;
     }
 
-    const externalTracks = item.tracking.filter((track) => isExternalTracker(track.trackerId));
+    const externalTracks = item.tracking.filter((track) =>
+      isExternalTracker(track.trackerId),
+    );
 
     if (options.onlyWithExternalTracker && externalTracks.length === 0) {
       return false;
     }
 
     if (options.minExternalScoreEnabled) {
-      const hasMinScore = externalTracks.some((track) => track.score >= options.minExternalScore);
+      const hasMinScore = externalTracks.some(
+        (track) => track.score >= options.minExternalScore,
+      );
       if (!hasMinScore) return false;
     }
 
@@ -45,8 +52,13 @@ function filterAnimeList(anime: UiAnime[], options: ExportOptions): UiAnime[] {
   });
 }
 
-export function buildFilteredBackup(backup: UiBackup, options: ExportOptions): UiBackup {
-  const anime = options.includeAnime ? filterAnimeList(backup.anime, options) : [];
+export function buildFilteredBackup(
+  backup: UiBackup,
+  options: ExportOptions,
+): UiBackup {
+  const anime = options.includeAnime
+    ? filterAnimeList(backup.anime, options)
+    : [];
   const usedCategoryOrders = new Set(anime.flatMap((item) => item.categories));
   const usedSourceIds = new Set(anime.map((item) => item.source));
 
@@ -58,24 +70,32 @@ export function buildFilteredBackup(backup: UiBackup, options: ExportOptions): U
       ? backup.categories.filter((cat) => usedCategoryOrders.has(cat.order))
       : [],
     categoryCount: options.includeCategories
-      ? backup.categories.filter((cat) => usedCategoryOrders.has(cat.order)).length
+      ? backup.categories.filter((cat) => usedCategoryOrders.has(cat.order))
+          .length
       : 0,
     sources: options.includeSources
       ? backup.sources.filter((source) => usedSourceIds.has(source.sourceId))
       : [],
     sourceCount: options.includeSources
-      ? backup.sources.filter((source) => usedSourceIds.has(source.sourceId)).length
+      ? backup.sources.filter((source) => usedSourceIds.has(source.sourceId))
+          .length
       : 0,
     preferences: options.includePreferences ? backup.preferences : [],
     preferenceCount: options.includePreferences ? backup.preferences.length : 0,
-    sourcePreferences: options.includeSourcePreferences ? backup.sourcePreferences : [],
-    sourcePreferenceCount: options.includeSourcePreferences ? backup.sourcePreferences.length : 0,
+    sourcePreferences: options.includeSourcePreferences
+      ? backup.sourcePreferences
+      : [],
+    sourcePreferenceCount: options.includeSourcePreferences
+      ? backup.sourcePreferences.length
+      : 0,
     extensions: options.includeExtensions ? backup.extensions : [],
     extensionCount: options.includeExtensions ? backup.extensions.length : 0,
     extensionRepos: options.includeRepos ? backup.extensionRepos : [],
     extensionRepoCount: options.includeRepos ? backup.extensionRepos.length : 0,
     customButtons: options.includeCustomButtons ? backup.customButtons : [],
-    customButtonCount: options.includeCustomButtons ? backup.customButtons.length : 0,
+    customButtonCount: options.includeCustomButtons
+      ? backup.customButtons.length
+      : 0,
   };
 }
 
@@ -158,15 +178,18 @@ function toBackupMessage(backup: UiBackup) {
     })),
     backupPreferences: backup.preferences.map((item) => ({
       key: item.key,
-      value: new Uint8Array(),
+      value: item.rawValue,
     })),
     backupSourcePreferences: backup.sourcePreferences.map((item) => ({
       sourceKey: item.sourceKey,
-      prefs: [],
+      prefs: item.prefs.map((pref) => ({
+        key: pref.key,
+        value: pref.rawValue,
+      })),
     })),
     backupExtensions: backup.extensions.map((item) => ({
       pkgName: item.pkgName,
-      apk: new Uint8Array(item.apkSize),
+      apk: item.apk,
     })),
     backupAnimeExtensionRepo: backup.extensionRepos.map((item) => ({
       baseUrl: item.baseUrl,
@@ -201,7 +224,9 @@ export function buildExportBlob(
       data: filtered,
     };
     return {
-      blob: new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }),
+      blob: new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      }),
       extension: "json",
     };
   }

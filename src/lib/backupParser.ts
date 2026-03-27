@@ -232,6 +232,7 @@ function normalizePreferences(rawPrefs: AnyRecord[]): UiPreference[] {
     return {
       key,
       valuePreview: parsePreferenceRaw(valueRaw),
+      rawValue: valueRaw ?? new Uint8Array(),
     };
   });
 }
@@ -273,11 +274,12 @@ export function parseBackupBuffer(bytes: Uint8Array): UiBackup {
   const sourcePreferences: UiSourcePreference[] = picked.sourcePreferences.map(
     (item) => ({
       sourceKey: toStringSafe(item.sourceKey),
-      prefCount: arrayOf<AnyRecord>(item.prefs).length,
+      prefs: normalizePreferences(arrayOf<AnyRecord>(item.prefs)),
     }),
   );
   const extensions: UiExtension[] = picked.extensions.map((item) => ({
     pkgName: toStringSafe(item.pkgName),
+    apk: item.apk instanceof Uint8Array ? item.apk : new Uint8Array(),
     apkSize: item.apk instanceof Uint8Array ? item.apk.byteLength : 0,
   }));
   const extensionRepos: UiExtensionRepo[] = picked.extensionRepos.map(

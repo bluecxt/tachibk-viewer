@@ -87,16 +87,18 @@ export type UiSource = {
 export type UiPreference = {
   key: string;
   valuePreview: string;
+  rawValue: Uint8Array;
 };
 
 export type UiSourcePreference = {
   sourceKey: string;
-  prefCount: number;
+  prefs: UiPreference[];
 };
 
 export type UiExtension = {
   pkgName: string;
   apkSize: number;
+  apk: Uint8Array;
 };
 
 export type UiExtensionRepo = {
