@@ -333,6 +333,22 @@ code {
     font-size: 0.98rem;
 }
 
+.entry-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.entry-edit-btn {
+    border: 1px solid #2a3348;
+    border-radius: 8px;
+    background: #0f1320;
+    color: #d5e0f3;
+    font-size: 0.74rem;
+    padding: 4px 8px;
+}
+
 .entry-card p {
     margin: 0;
     color: #8f9bb0;
@@ -404,6 +420,21 @@ code {
     margin-bottom: 8px;
 }
 
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.modal-save {
+    border-radius: 9px;
+    border: 1px solid #1f5f46;
+    background: #113725;
+    color: #d1fae5;
+    padding: 7px 10px;
+}
+
 .muted {
     margin: 0 0 10px;
     color: var(--text-dim);
@@ -449,6 +480,41 @@ code {
     overflow-wrap: anywhere;
 }
 
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.edit-grid label,
+.edit-block {
+    display: grid;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #b7c4d8;
+}
+
+.edit-grid input,
+.edit-block textarea {
+    border-radius: 9px;
+    border: 1px solid #2b3448;
+    background: #0e121c;
+    color: #e7eefb;
+    padding: 8px 9px;
+}
+
+.edit-check {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+}
+
+.edit-block {
+    margin-top: 8px;
+}
+
 @media (max-width: 900px) {
     .app-shell {
         grid-template-columns: 1fr;
@@ -464,6 +530,10 @@ code {
     }
 
     .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-grid {
         grid-template-columns: 1fr;
     }
 }

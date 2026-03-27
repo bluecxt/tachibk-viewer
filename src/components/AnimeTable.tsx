@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
+import AnimeEditModal from "./AnimeEditModal";
 import type { UiAnime, UiCategory } from "../lib/types";
 
 type Props = {
   anime: UiAnime[];
   categories: UiCategory[];
+  onUpdateAnime: (anime: UiAnime) => void;
 };
 
 type SortBy =
@@ -75,7 +77,11 @@ function trackerStatusLabel(trackerId: number, status: number): string {
   return known[key] ?? `Status ${status}`;
 }
 
-export default function AnimeTable({ anime, categories }: Props) {
+export default function AnimeTable({
+  anime,
+  categories,
+  onUpdateAnime,
+}: Props) {
   const [filter, setFilter] = useState("");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [onlyTracked, setOnlyTracked] = useState(false);
@@ -85,6 +91,7 @@ export default function AnimeTable({ anime, categories }: Props) {
   const [pageSize, setPageSize] = useState(80);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<UiAnime | null>(null);
+  const [editing, setEditing] = useState<UiAnime | null>(null);
 
   const categoryByOrder = useMemo(() => {
     const map = new Map<number, string>();
@@ -258,7 +265,19 @@ export default function AnimeTable({ anime, categories }: Props) {
             className="entry-card"
             onClick={() => setSelected(item)}
           >
-            <h3>{item.customTitle || item.title || "(sans titre)"}</h3>
+            <div className="entry-head">
+              <h3>{item.customTitle || item.title || "(sans titre)"}</h3>
+              <button
+                type="button"
+                className="entry-edit-btn"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setEditing(item);
+                }}
+              >
+                Edit
+              </button>
+            </div>
             <p>{item.sourceName || item.source}</p>
             <p>{formatCategoryList(item.categories)}</p>
             <div className="entry-meta">
@@ -438,6 +457,21 @@ export default function AnimeTable({ anime, categories }: Props) {
             )}
           </div>
         </div>
+      )}
+
+      {editing && (
+        <AnimeEditModal
+          anime={editing}
+          categories={categories}
+          onClose={() => setEditing(null)}
+          onSave={(updated) => {
+            onUpdateAnime(updated);
+            if (selected?.id === updated.id) {
+              setSelected(updated);
+            }
+            setEditing(null);
+          }}
+        />
       )}
     </section>
   );

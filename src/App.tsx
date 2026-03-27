@@ -108,6 +108,18 @@ export default function App() {
     }).format(ts);
   }
 
+  function handleUpdateAnime(updatedAnime: UiBackup["anime"][number]) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        anime: prev.anime.map((item) =>
+          item.id === updatedAnime.id ? updatedAnime : item,
+        ),
+      };
+    });
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar panel">
@@ -203,7 +215,11 @@ export default function App() {
         )}
 
         {backup && section === "library" && (
-          <AnimeTable anime={backup.anime} categories={backup.categories} />
+          <AnimeTable
+            anime={backup.anime}
+            categories={backup.categories}
+            onUpdateAnime={handleUpdateAnime}
+          />
         )}
 
         {backup && section === "categories" && (
