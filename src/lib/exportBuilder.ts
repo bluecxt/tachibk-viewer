@@ -1,8 +1,9 @@
 import pako from "pako";
+import yaml from "js-yaml";
 import { BackupType } from "./protoSchema";
 import type { UiAnime, UiBackup } from "./types";
 
-export type ExportFormat = "json" | "tachibk" | "ai-json";
+export type ExportFormat = "json" | "tachibk" | "ai-yaml";
 
 export type ExportOptions = {
   format: ExportFormat;
@@ -19,11 +20,22 @@ export type ExportOptions = {
   minExternalScore: number;
   categoryFilterMode: "include" | "exclude";
   selectedCategoryOrders: number[];
+  sourceFilterMode: "include" | "exclude";
+  selectedSourceIds: number[];
 };
 
 function isExternalTracker(trackerId: number): boolean {
   return trackerId !== 0 && trackerId !== 999;
 }
+
+const statusLabels: Record<number, string> = {
+    1: "Ongoing",
+    2: "Completed",
+    3: "Licensed",
+    4: "Publishing finished",
+    5: "Cancelled",
+    6: "On hiatus"
+};
 
 function filterAnimeList(anime: UiAnime[], options: ExportOptions): UiAnime[] {
   return anime.filter((item) => {
@@ -32,6 +44,13 @@ function filterAnimeList(anime: UiAnime[], options: ExportOptions): UiAnime[] {
         const hasMatch = item.categories.some(c => options.selectedCategoryOrders.includes(c));
         if (options.categoryFilterMode === "include" && !hasMatch) return false;
         if (options.categoryFilterMode === "exclude" && hasMatch) return false;
+    }
+
+    // Source filter (Include / Exclude)
+    if (options.selectedSourceIds.length > 0) {
+        const hasMatch = options.selectedSourceIds.includes(item.source);
+        if (options.sourceFilterMode === "include" && !hasMatch) return false;
+        if (options.sourceFilterMode === "exclude" && hasMatch) return false;
     }
 
     const externalTracks = item.tracking.filter((track) =>
@@ -100,12 +119,12 @@ export function buildFilteredBackup(
   };
 }
 
-function toAiJson(backup: UiBackup) {
+function toAiData(backup: UiBackup) {
     const categoryMap = new Map(backup.categories.map(c => [c.order, c.name]));
     
     return backup.anime.map(item => ({
         title: item.customTitle || item.title,
-        status: item.customStatus || item.status,
+        status: `${item.customStatus || item.status} (${statusLabels[item.customStatus || item.status] || 'Unknown'})`,
         favorite: item.favorite,
         genres: item.customGenre.length > 0 ? item.customGenre : item.genres,
         categories: item.categories.map(order => categoryMap.get(order) || `ID:${order}`),
@@ -235,16 +254,16 @@ function toBackupMessage(backup: UiBackup) {
 export function buildExportBlob(
   backup: UiBackup,
   options: ExportOptions,
-): { blob: Blob; extension: "json" | "tachibk" } {
+): { blob: Blob; extension: string } {
   const filtered = buildFilteredBackup(backup, options);
 
-  if (options.format === "ai-json") {
-      const data = toAiJson(filtered);
+  if (options.format === "ai-yaml") {
+      const data = toAiData(filtered);
       return {
-          blob: new Blob([JSON.stringify(data, null, 2)], {
-              type: "application/json",
+          blob: new Blob([yaml.dump(data)], {
+              type: "text/yaml",
           }),
-          extension: "json",
+          extension: "yaml",
       };
   }
 

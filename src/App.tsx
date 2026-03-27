@@ -543,6 +543,7 @@ export default function App() {
         <ExportModal
           backup={backup}
           categories={backup.categories}
+          sources={backup.sources}
           onClose={() => setShowExportModal(false)}
         />
       )}

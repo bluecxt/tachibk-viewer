@@ -319,12 +319,39 @@ code {
 }
 
 .toolbar input,
-.toolbar select {
-    border-radius: 10px;
-    border: 1px solid #242838;
+.toolbar select,
+.edit-grid input,
+.edit-grid select,
+.edit-block select,
+.edit-block textarea {
+    border-radius: 9px;
+    border: 1px solid #2b3448;
     background: #0d0f14;
-    color: var(--text);
-    padding: 9px 10px;
+    color: #e7eefb;
+    padding: 8px 10px;
+    font-family: inherit;
+    width: 100%;
+}
+
+.edit-grid select option {
+    background: #0d0f14;
+    color: #e7eefb;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #2b3448;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #3a4561;
 }
 
 .toolbar label {
