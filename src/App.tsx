@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import AnimeTable from "./components/AnimeTable";
 import AnimeFullDetailsSection from "./components/AnimeFullDetailsSection";
+import CategoryEditModal from "./components/CategoryEditModal";
 import CategoriesSection from "./components/CategoriesSection";
 import CustomButtonsSection from "./components/CustomButtonsSection";
+import CustomButtonEditModal from "./components/CustomButtonEditModal";
 import ExportModal from "./components/ExportModal";
 import ExtensionsSection from "./components/ExtensionsSection";
 import PreferenceTable from "./components/PreferenceTable";
+import RepoEditModal from "./components/RepoEditModal";
 import ReposSection from "./components/ReposSection";
 import SourcePreferencesSection from "./components/SourcePreferencesSection";
 import SourcesSection from "./components/SourcesSection";
@@ -18,7 +21,12 @@ import {
   type StoredBackupFileMeta,
 } from "./lib/historyStorage";
 import { parseBackupBufferWithWorker } from "./lib/workerClient";
-import type { UiBackup } from "./lib/types";
+import type {
+  UiBackup,
+  UiCategory,
+  UiCustomButton,
+  UiExtensionRepo,
+} from "./lib/types";
 
 type SectionId =
   | "summary"
@@ -42,6 +50,18 @@ export default function App() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [historyFiles, setHistoryFiles] = useState<StoredBackupFileMeta[]>([]);
   const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<{
+    index: number;
+    item: UiCategory;
+  } | null>(null);
+  const [editingRepo, setEditingRepo] = useState<{
+    index: number;
+    item: UiExtensionRepo;
+  } | null>(null);
+  const [editingCustomButton, setEditingCustomButton] = useState<{
+    index: number;
+    item: UiCustomButton;
+  } | null>(null);
 
   const sections = useMemo(
     () => [
@@ -135,6 +155,135 @@ export default function App() {
           item.id === updatedAnime.id ? updatedAnime : item,
         ),
       };
+    });
+  }
+
+  function handleUpdateCategory(index: number, updatedCategory: UiCategory) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        categories: prev.categories.map((item, itemIndex) =>
+          itemIndex === index ? updatedCategory : item,
+        ),
+      };
+    });
+  }
+
+  function handleAddCategory() {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      const nextOrder = Math.max(0, ...prev.categories.map(c => c.order)) + 1;
+      const newCat: UiCategory = {
+        name: "New Category",
+        order: nextOrder,
+        flags: 0,
+        hidden: false
+      };
+      return {
+        ...prev,
+        categories: [...prev.categories, newCat]
+      };
+    });
+  }
+
+  function handleDeleteCategory(order: number) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        categories: prev.categories.filter(c => c.order !== order),
+        // We should also remove this category from all anime
+        anime: prev.anime.map(a => ({
+            ...a,
+            categories: a.categories.filter(o => o !== order)
+        }))
+      };
+    });
+  }
+
+  function handleUpdateRepo(index: number, updatedRepo: UiExtensionRepo) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        extensionRepos: prev.extensionRepos.map((item, itemIndex) =>
+          itemIndex === index ? updatedRepo : item,
+        ),
+      };
+    });
+  }
+
+  function handleAddRepo() {
+    setBackup((prev) => {
+        if (!prev) return prev;
+        const newRepo: UiExtensionRepo = {
+            name: "New Repo",
+            baseUrl: "https://",
+            shortName: null,
+            website: "https://",
+            signingKeyFingerprint: "",
+            isVisible: true,
+            author: null
+        };
+        return {
+            ...prev,
+            extensionRepos: [...prev.extensionRepos, newRepo]
+        };
+    });
+  }
+
+  function handleDeleteRepo(index: number) {
+    setBackup((prev) => {
+        if (!prev) return prev;
+        return {
+            ...prev,
+            extensionRepos: prev.extensionRepos.filter((_, i) => i !== index)
+        };
+    });
+  }
+
+  function handleUpdateCustomButton(
+    index: number,
+    updatedButton: UiCustomButton,
+  ) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        customButtons: prev.customButtons.map((item, itemIndex) =>
+          itemIndex === index ? updatedButton : item,
+        ),
+      };
+    });
+  }
+
+  function handleAddCustomButton() {
+    setBackup((prev) => {
+        if (!prev) return prev;
+        const nextIndex = Math.max(0, ...prev.customButtons.map(b => b.sortIndex)) + 1;
+        const newButton: UiCustomButton = {
+            name: "New Button",
+            isFavorite: false,
+            sortIndex: nextIndex,
+            content: "",
+            longPressContent: "",
+            onStartup: ""
+        };
+        return {
+            ...prev,
+            customButtons: [...prev.customButtons, newButton]
+        };
+    });
+  }
+
+  function handleDeleteCustomButton(index: number) {
+    setBackup((prev) => {
+        if (!prev) return prev;
+        return {
+            ...prev,
+            customButtons: prev.customButtons.filter((_, i) => i !== index)
+        };
     });
   }
 
@@ -270,6 +419,18 @@ export default function App() {
           <CategoriesSection
             anime={backup.anime}
             categories={backup.categories}
+            onEditCategory={(index) =>
+              setEditingCategory({
+                index,
+                item: backup.categories.find((cat) => cat.order === index) ?? {
+                  name: "",
+                  order: index,
+                  flags: 0,
+                  hidden: false,
+                },
+              })
+            }
+            onAddCategory={handleAddCategory}
           />
         )}
 
@@ -292,11 +453,26 @@ export default function App() {
         )}
 
         {backup && section === "repos" && (
-          <ReposSection repos={backup.extensionRepos} />
+          <ReposSection
+            repos={backup.extensionRepos}
+            onEditRepo={(index) =>
+              setEditingRepo({ index, item: backup.extensionRepos[index] })
+            }
+            onAddRepo={handleAddRepo}
+          />
         )}
 
         {backup && section === "customButtons" && (
-          <CustomButtonsSection customButtons={backup.customButtons} />
+          <CustomButtonsSection
+            customButtons={backup.customButtons}
+            onEditButton={(index) =>
+              setEditingCustomButton({
+                index,
+                item: backup.customButtons[index],
+              })
+            }
+            onAddButton={handleAddCustomButton}
+          />
         )}
       </section>
 
@@ -305,6 +481,51 @@ export default function App() {
           backup={backup}
           categories={backup.categories}
           onClose={() => setShowExportModal(false)}
+        />
+      )}
+
+      {backup && editingCategory && (
+        <CategoryEditModal
+          category={editingCategory.item}
+          onClose={() => setEditingCategory(null)}
+          onSave={(updated) => {
+            handleUpdateCategory(editingCategory.index, updated);
+            setEditingCategory(null);
+          }}
+          onDelete={() => {
+              handleDeleteCategory(editingCategory.index);
+              setEditingCategory(null);
+          }}
+        />
+      )}
+
+      {backup && editingRepo && (
+        <RepoEditModal
+          repo={editingRepo.item}
+          onClose={() => setEditingRepo(null)}
+          onSave={(updated) => {
+            handleUpdateRepo(editingRepo.index, updated);
+            setEditingRepo(null);
+          }}
+          onDelete={() => {
+              handleDeleteRepo(editingRepo.index);
+              setEditingRepo(null);
+          }}
+        />
+      )}
+
+      {backup && editingCustomButton && (
+        <CustomButtonEditModal
+          button={editingCustomButton.item}
+          onClose={() => setEditingCustomButton(null)}
+          onSave={(updated) => {
+            handleUpdateCustomButton(editingCustomButton.index, updated);
+            setEditingCustomButton(null);
+          }}
+          onDelete={() => {
+              handleDeleteCustomButton(editingCustomButton.index);
+              setEditingCustomButton(null);
+          }}
         />
       )}
     </main>

@@ -4,9 +4,16 @@ import type { UiAnime, UiCategory } from "../lib/types";
 type Props = {
   anime: UiAnime[];
   categories: UiCategory[];
+  onEditCategory: (order: number) => void;
+  onAddCategory: () => void;
 };
 
-export default function CategoriesSection({ anime, categories }: Props) {
+export default function CategoriesSection({
+  anime,
+  categories,
+  onEditCategory,
+  onAddCategory,
+}: Props) {
   const rows = useMemo(() => {
     const counts = new Map<number, number>();
     anime.forEach((entry) => {
@@ -25,8 +32,13 @@ export default function CategoriesSection({ anime, categories }: Props) {
   return (
     <section className="panel" id="categories">
       <div className="panel-head">
-        <h2>Categories</h2>
-        <p>{rows.length} categories</p>
+        <div>
+            <h2>Categories</h2>
+            <p>{rows.length} categories</p>
+        </div>
+        <button type="button" className="modal-save" onClick={onAddCategory}>
+            + Add Category
+        </button>
       </div>
       <div className="kv-list">
         {rows.map((category) => (
@@ -34,7 +46,16 @@ export default function CategoriesSection({ anime, categories }: Props) {
             key={`${category.order}-${category.name}`}
             className="kv-item"
           >
-            <h3>{category.name || "(unnamed)"}</h3>
+            <div className="kv-card-head">
+              <h3>{category.name || "(unnamed)"}</h3>
+              <button
+                type="button"
+                className="entry-edit-btn"
+                onClick={() => onEditCategory(category.order)}
+              >
+                Edit
+              </button>
+            </div>
             <p>Order: {category.order}</p>
             <p>Linked entries: {category.entryCount}</p>
             <p>Hidden: {category.hidden ? "Yes" : "No"}</p>
