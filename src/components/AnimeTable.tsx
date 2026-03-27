@@ -46,6 +46,35 @@ function linkOrCode(value: string) {
   return <code>{value}</code>;
 }
 
+function trackerStatusLabel(trackerId: number, status: number): string {
+  const key = `${trackerId}:${status}`;
+  const known: Record<string, string> = {
+    "999:1": "Watching",
+    "999:2": "Completed",
+    "999:3": "On hold",
+    "999:4": "Dropped",
+    "999:5": "Plan to watch",
+    "1:11": "Watching",
+    "1:2": "Completed",
+    "1:3": "On hold",
+    "1:4": "Dropped",
+    "1:16": "Plan to watch",
+    "1:17": "Rewatching",
+    "2:11": "Watching",
+    "2:15": "Plan to watch",
+    "2:2": "Completed",
+    "2:16": "Rewatching",
+    "2:3": "On hold",
+    "2:4": "Dropped",
+    "101:1": "Watching",
+    "101:2": "Completed",
+    "101:3": "On hold",
+    "101:4": "Not interesting",
+    "101:5": "Plan to watch",
+  };
+  return known[key] ?? `Status ${status}`;
+}
+
 export default function AnimeTable({ anime, categories }: Props) {
   const [filter, setFilter] = useState("");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
@@ -315,6 +344,28 @@ export default function AnimeTable({ anime, categories }: Props) {
                 <span>Trackers</span>
                 <b>{selected.tracking.length}</b>
               </p>
+              <p>
+                <span>Vus (interne)</span>
+                <b>{selected.episodes.filter((ep) => ep.seen).length}</b>
+              </p>
+              <p>
+                <span>Bookmarks</span>
+                <b>{selected.episodes.filter((ep) => ep.bookmark).length}</b>
+              </p>
+              <p>
+                <span>Historique</span>
+                <b>{selected.history.length}</b>
+              </p>
+              <p>
+                <span>Dernière lecture</span>
+                <b>
+                  {selected.history.length > 0
+                    ? formatDate(
+                        Math.max(...selected.history.map((h) => h.lastRead)),
+                      )
+                    : "-"}
+                </b>
+              </p>
             </div>
 
             <div className="detail-block">
@@ -344,32 +395,13 @@ export default function AnimeTable({ anime, categories }: Props) {
               )}
             </div>
 
-            <div className="detail-block">
-              <h4>Suivi interne</h4>
-              <p>
-                Épisodes vus: {selected.episodes.filter((ep) => ep.seen).length}
-              </p>
-              <p>
-                Épisodes bookmark:{" "}
-                {selected.episodes.filter((ep) => ep.bookmark).length}
-              </p>
-              <p>Historique: {selected.history.length}</p>
-              <p>
-                Dernière lecture interne:{" "}
-                {selected.history.length > 0
-                  ? formatDate(
-                      Math.max(...selected.history.map((h) => h.lastRead)),
-                    )
-                  : "-"}
-              </p>
-            </div>
-
             {selected.tracking.length > 0 && (
               <div className="detail-block">
-                <h4>Trackers externes et internes</h4>
+                <h4>Trackers</h4>
                 <div className="kv-list">
                   {selected.tracking.map((track, index) => {
-                    const isInternal = track.trackerId === 0;
+                    const isInternal =
+                      track.trackerId === 0 || track.trackerId === 999;
                     return (
                       <article
                         key={`${track.trackerId}-${track.mediaId}-${index}`}
@@ -385,7 +417,11 @@ export default function AnimeTable({ anime, categories }: Props) {
                         <p>Tracker ID: {track.trackerId}</p>
                         <p>Library ID: {track.libraryId || "-"}</p>
                         <p>Media ID: {track.mediaId || "-"}</p>
-                        <p>Status: {track.status}</p>
+                        <p>
+                          Status:{" "}
+                          {trackerStatusLabel(track.trackerId, track.status)} (
+                          {track.status})
+                        </p>
                         <p>Score: {track.score}</p>
                         <p>
                           Progression: {track.lastEpisodeSeen} /{" "}
