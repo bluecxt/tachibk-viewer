@@ -2,7 +2,7 @@ import pako from "pako";
 import { BackupType } from "./protoSchema";
 import type { UiAnime, UiBackup } from "./types";
 
-export type ExportFormat = "json" | "tachibk";
+export type ExportFormat = "json" | "tachibk" | "ai-json";
 
 export type ExportOptions = {
   format: ExportFormat;
@@ -17,7 +17,8 @@ export type ExportOptions = {
   onlyWithExternalTracker: boolean;
   minExternalScoreEnabled: boolean;
   minExternalScore: number;
-  categoryFilter: "all" | number;
+  categoryFilterMode: "include" | "exclude";
+  selectedCategoryOrders: number[];
 };
 
 function isExternalTracker(trackerId: number): boolean {
@@ -26,11 +27,11 @@ function isExternalTracker(trackerId: number): boolean {
 
 function filterAnimeList(anime: UiAnime[], options: ExportOptions): UiAnime[] {
   return anime.filter((item) => {
-    if (
-      options.categoryFilter !== "all" &&
-      !item.categories.includes(options.categoryFilter)
-    ) {
-      return false;
+    // Multi-category filter (Include / Exclude)
+    if (options.selectedCategoryOrders.length > 0) {
+        const hasMatch = item.categories.some(c => options.selectedCategoryOrders.includes(c));
+        if (options.categoryFilterMode === "include" && !hasMatch) return false;
+        if (options.categoryFilterMode === "exclude" && hasMatch) return false;
     }
 
     const externalTracks = item.tracking.filter((track) =>
@@ -97,6 +98,26 @@ export function buildFilteredBackup(
       ? backup.customButtons.length
       : 0,
   };
+}
+
+function toAiJson(backup: UiBackup) {
+    const categoryMap = new Map(backup.categories.map(c => [c.order, c.name]));
+    
+    return backup.anime.map(item => ({
+        title: item.customTitle || item.title,
+        status: item.customStatus || item.status,
+        favorite: item.favorite,
+        genres: item.customGenre.length > 0 ? item.customGenre : item.genres,
+        categories: item.categories.map(order => categoryMap.get(order) || `ID:${order}`),
+        tracking: item.tracking
+            .filter(t => isExternalTracker(t.trackerId))
+            .map(t => ({
+                title: t.title,
+                score: t.score,
+                status: t.status
+            })),
+        notes: item.notes || undefined
+    }));
 }
 
 function toBackupMessage(backup: UiBackup) {
@@ -216,6 +237,16 @@ export function buildExportBlob(
   options: ExportOptions,
 ): { blob: Blob; extension: "json" | "tachibk" } {
   const filtered = buildFilteredBackup(backup, options);
+
+  if (options.format === "ai-json") {
+      const data = toAiJson(filtered);
+      return {
+          blob: new Blob([JSON.stringify(data, null, 2)], {
+              type: "application/json",
+          }),
+          extension: "json",
+      };
+  }
 
   if (options.format === "json") {
     const payload = {
