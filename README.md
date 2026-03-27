@@ -54,3 +54,16 @@ npm run dev
 - Preferences are decoded with heuristics because their payloads can vary by value type.
 - Extension APK bytes are preserved when exporting `tachibk` files.
 - The `tachibk` export aims to remain compatible with AniZen backup readers.
+
+## TODO / Future Roadmap
+
+1. **Batch Editing**: Select multiple anime to change categories, status, or favorite state in a single action.
+2. **Advanced Filtering**: Add multi-select filters for genres, sources, and status in the library view.
+3. **Visual Statistics**: Dashboard with charts for genre distribution, status counts, and source usage.
+4. **Drag-and-Drop Reordering**: Support visual reordering for categories and custom buttons.
+5. **Duplicate Detection**: Identify and merge duplicate entries from different sources.
+6. **Source Preference Editing**: Support modifying source-specific settings directly within the app.
+7. **PWA Support**: Make the app installable for full offline usage and better desktop integration.
+8. **Thumbnail Grid View**: High-density visual layout for the library with poster images.
+9. **External Metadata Sync**: Fetch missing images or descriptions from AniList/MAL/TMDB.
+10. **Global Search**: Deep search across descriptions, notes, and tracking titles.
