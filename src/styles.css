@@ -98,6 +98,18 @@ code {
     cursor: pointer;
 }
 
+.export-btn {
+    margin-top: 8px;
+    width: 100%;
+    justify-content: center;
+    opacity: 1;
+}
+
+.export-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
 .upload-input {
     position: absolute;
     width: 1px;
@@ -241,6 +253,15 @@ code {
 
 .stat-card strong {
     font-size: 1.25rem;
+}
+
+.stat-card-clickable {
+    cursor: pointer;
+}
+
+.stat-card-clickable:hover {
+    border-color: #2f7e62;
+    background: #122117;
 }
 
 .kv-item h3 {

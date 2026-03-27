@@ -2,9 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import AnimeTable from "./components/AnimeTable";
 import AnimeFullDetailsSection from "./components/AnimeFullDetailsSection";
 import CategoriesSection from "./components/CategoriesSection";
+import CustomButtonsSection from "./components/CustomButtonsSection";
+import ExtensionsSection from "./components/ExtensionsSection";
 import PreferenceTable from "./components/PreferenceTable";
+import ReposSection from "./components/ReposSection";
+import SourcePreferencesSection from "./components/SourcePreferencesSection";
 import SourcesSection from "./components/SourcesSection";
-import SummaryCards from "./components/SummaryCards";
+import SummaryCards, { type SummaryTarget } from "./components/SummaryCards";
 import {
   deleteStoredBackupFile,
   getStoredBackupFileBuffer,
@@ -21,7 +25,11 @@ type SectionId =
   | "advanced"
   | "categories"
   | "sources"
-  | "preferences";
+  | "preferences"
+  | "sourcePrefs"
+  | "extensions"
+  | "repos"
+  | "customButtons";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
@@ -41,6 +49,10 @@ export default function App() {
       { id: "categories" as const, label: "Catégories" },
       { id: "sources" as const, label: "Sources" },
       { id: "preferences" as const, label: "Préférences" },
+      { id: "sourcePrefs" as const, label: "Prefs sources" },
+      { id: "extensions" as const, label: "Extensions" },
+      { id: "repos" as const, label: "Repos" },
+      { id: "customButtons" as const, label: "Boutons" },
     ],
     [],
   );
@@ -126,6 +138,28 @@ export default function App() {
     });
   }
 
+  function openSummaryTarget(target: SummaryTarget) {
+    setSection(target as SectionId);
+  }
+
+  function exportCurrentBackupJson() {
+    if (!backup) return;
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      fileName,
+      data: backup,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `tachibk-viewer-export-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar panel">
@@ -147,6 +181,14 @@ export default function App() {
         {fileName && <p className="meta-line">{fileName}</p>}
         {loading && <p className="meta-line">Parsing en cours...</p>}
         {error && <p className="error">{error}</p>}
+        <button
+          type="button"
+          className="upload-label export-btn"
+          onClick={exportCurrentBackupJson}
+          disabled={!backup}
+        >
+          Export JSON
+        </button>
 
         <nav className="side-nav">
           {sections.map((item) => (
@@ -216,7 +258,7 @@ export default function App() {
                   : "Format moderne détecté"}
               </p>
             </div>
-            <SummaryCards backup={backup} />
+            <SummaryCards backup={backup} onOpen={openSummaryTarget} />
           </section>
         )}
 
@@ -255,6 +297,24 @@ export default function App() {
 
         {backup && section === "preferences" && (
           <PreferenceTable preferences={backup.preferences} />
+        )}
+
+        {backup && section === "sourcePrefs" && (
+          <SourcePreferencesSection
+            sourcePreferences={backup.sourcePreferences}
+          />
+        )}
+
+        {backup && section === "extensions" && (
+          <ExtensionsSection extensions={backup.extensions} />
+        )}
+
+        {backup && section === "repos" && (
+          <ReposSection repos={backup.extensionRepos} />
+        )}
+
+        {backup && section === "customButtons" && (
+          <CustomButtonsSection customButtons={backup.customButtons} />
         )}
       </section>
     </main>

@@ -1,7 +1,15 @@
 import pako from "pako";
 import { Reader } from "protobufjs/light";
 import { BackupDetectType, BackupType, LegacyBackupType } from "./protoSchema";
-import type { UiAnime, UiBackup, UiPreference } from "./types";
+import type {
+  UiAnime,
+  UiBackup,
+  UiCustomButton,
+  UiExtension,
+  UiExtensionRepo,
+  UiPreference,
+  UiSourcePreference,
+} from "./types";
 
 type AnyRecord = Record<string, unknown>;
 
@@ -262,6 +270,35 @@ export function parseBackupBuffer(bytes: Uint8Array): UiBackup {
     sourceId: toNumber(source.sourceId),
   }));
   const preferences = normalizePreferences(picked.preferences);
+  const sourcePreferences: UiSourcePreference[] = picked.sourcePreferences.map(
+    (item) => ({
+      sourceKey: toStringSafe(item.sourceKey),
+      prefCount: arrayOf<AnyRecord>(item.prefs).length,
+    }),
+  );
+  const extensions: UiExtension[] = picked.extensions.map((item) => ({
+    pkgName: toStringSafe(item.pkgName),
+    apkSize: item.apk instanceof Uint8Array ? item.apk.byteLength : 0,
+  }));
+  const extensionRepos: UiExtensionRepo[] = picked.extensionRepos.map(
+    (item) => ({
+      baseUrl: toStringSafe(item.baseUrl),
+      name: toStringSafe(item.name),
+      shortName: item.shortName ? String(item.shortName) : null,
+      website: toStringSafe(item.website),
+      signingKeyFingerprint: toStringSafe(item.signingKeyFingerprint),
+      isVisible: toBool(item.isVisible),
+      author: item.author ? String(item.author) : null,
+    }),
+  );
+  const customButtons: UiCustomButton[] = picked.customButtons.map((item) => ({
+    name: toStringSafe(item.name),
+    isFavorite: toBool(item.isFavorite),
+    sortIndex: toNumber(item.sortIndex),
+    content: toStringSafe(item.content),
+    longPressContent: toStringSafe(item.longPressContent),
+    onStartup: toStringSafe(item.onStartup),
+  }));
   const sourceMap = new Map<number, string>(
     sources.map((source) => [source.sourceId, source.name]),
   );
@@ -284,5 +321,9 @@ export function parseBackupBuffer(bytes: Uint8Array): UiBackup {
     categories,
     sources,
     preferences,
+    sourcePreferences,
+    extensions,
+    extensionRepos,
+    customButtons,
   };
 }

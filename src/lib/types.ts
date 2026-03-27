@@ -89,6 +89,35 @@ export type UiPreference = {
   valuePreview: string;
 };
 
+export type UiSourcePreference = {
+  sourceKey: string;
+  prefCount: number;
+};
+
+export type UiExtension = {
+  pkgName: string;
+  apkSize: number;
+};
+
+export type UiExtensionRepo = {
+  baseUrl: string;
+  name: string;
+  shortName: string | null;
+  website: string;
+  signingKeyFingerprint: string;
+  isVisible: boolean;
+  author: string | null;
+};
+
+export type UiCustomButton = {
+  name: string;
+  isFavorite: boolean;
+  sortIndex: number;
+  content: string;
+  longPressContent: string;
+  onStartup: string;
+};
+
 export type UiBackup = {
   isLegacy: boolean;
   animeCount: number;
@@ -103,6 +132,10 @@ export type UiBackup = {
   categories: UiCategory[];
   sources: UiSource[];
   preferences: UiPreference[];
+  sourcePreferences: UiSourcePreference[];
+  extensions: UiExtension[];
+  extensionRepos: UiExtensionRepo[];
+  customButtons: UiCustomButton[];
 };
 
 export type WorkerResult =
