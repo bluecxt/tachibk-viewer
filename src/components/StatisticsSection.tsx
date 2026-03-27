@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { UiAnime } from "../lib/types";
+import { formatDuration } from "../lib/utils";
 
 type Props = {
   anime: UiAnime[];
@@ -35,7 +36,8 @@ export default function StatisticsSection({ anime }: Props) {
       sources: sortedSources,
       favorites,
       totalEpisodes,
-      totalAnime: anime.length
+      totalAnime: anime.length,
+      totalMinutes: totalEpisodes * 20
     };
   }, [anime]);
 
@@ -65,12 +67,16 @@ export default function StatisticsSection({ anime }: Props) {
             <strong>{stats.totalEpisodes}</strong>
         </div>
         <div className="stat-card">
+            <p>Total Watch Time</p>
+            <strong>{formatDuration(stats.totalMinutes)}</strong>
+        </div>
+        <div className="stat-card">
             <p>Avg. Episodes</p>
             <strong>{stats.totalAnime > 0 ? (stats.totalEpisodes / stats.totalAnime).toFixed(1) : 0}</strong>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px', marginTop: '20px' }}>
         <div className="detail-block">
             <h4>Top 10 Genres</h4>
             <div style={{ display: 'grid', gap: '8px' }}>

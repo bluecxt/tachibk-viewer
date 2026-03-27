@@ -78,6 +78,15 @@ function trackerStatusLabel(trackerId: number, status: number): string {
   return known[key] ?? `Status ${status}`;
 }
 
+const statusLabels: Record<number, string> = {
+    1: "Ongoing",
+    2: "Completed",
+    3: "Licensed",
+    4: "Publishing finished",
+    5: "Cancelled",
+    6: "On hiatus"
+};
+
 export default function AnimeTable({
   anime,
   categories,
@@ -95,6 +104,11 @@ export default function AnimeTable({
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [selected, setSelected] = useState<UiAnime | null>(null);
   const [editing, setEditing] = useState<UiAnime | null>(null);
+
+  // New specific filters
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<number | null>(null);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
 
   const categoryByOrder = useMemo(() => {
     const map = new Map<number, string>();
@@ -137,6 +151,20 @@ export default function AnimeTable({
       }
       if (onlyFavorites && !item.favorite) return false;
       if (onlyTracked && item.tracking.length === 0) return false;
+
+      // Clickable filters
+      if (selectedGenre) {
+          const gList = item.customGenre.length > 0 ? item.customGenre : item.genres;
+          if (!gList.includes(selectedGenre)) return false;
+      }
+      if (selectedStatus !== null) {
+          const s = item.customStatus !== 0 ? item.customStatus : item.status;
+          if (s !== selectedStatus) return false;
+      }
+      if (selectedSource) {
+          if ((item.sourceName || String(item.source)) !== selectedSource) return false;
+      }
+
       if (!q) return true;
       
       const inBasic = 
@@ -173,7 +201,7 @@ export default function AnimeTable({
         return factor * (a.tracking.length - b.tracking.length);
       return factor * a.sourceName.localeCompare(b.sourceName, "en");
     });
-  }, [activeTab, anime, filter, onlyFavorites, onlyTracked, sortBy, sortDir]);
+  }, [activeTab, anime, filter, onlyFavorites, onlyTracked, sortBy, sortDir, selectedGenre, selectedStatus, selectedSource]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount);
@@ -187,6 +215,18 @@ export default function AnimeTable({
     return categoryOrders
       .map((order) => categoryByOrder.get(order) ?? `ID ${order}`)
       .join(", ");
+  }
+
+  function renderGenreList(genres: string[]) {
+      return genres.map((g, i) => (
+          <span 
+            key={g} 
+            className="clickable-label" 
+            onClick={(e) => { e.stopPropagation(); setSelectedGenre(g); setPage(1); }}
+          >
+              {g}{i < genres.length - 1 ? ", " : ""}
+          </span>
+      ));
   }
 
   return (
@@ -283,6 +323,14 @@ export default function AnimeTable({
         </label>
       </div>
 
+      {(selectedGenre || selectedStatus || selectedSource) && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              {selectedGenre && <span className="filter-badge" onClick={() => setSelectedGenre(null)}>Genre: {selectedGenre} ✕</span>}
+              {selectedStatus && <span className="filter-badge" onClick={() => setSelectedStatus(null)}>Status: {statusLabels[selectedStatus] || selectedStatus} ✕</span>}
+              {selectedSource && <span className="filter-badge" onClick={() => setSelectedSource(null)}>Source: {selectedSource} ✕</span>}
+          </div>
+      )}
+
       {viewMode === "list" ? (
         <div className="entries-list">
             {visible.map((item) => (
@@ -304,12 +352,28 @@ export default function AnimeTable({
                     Edit
                 </button>
                 </div>
-                <p>{item.sourceName || item.source}</p>
+                <p>
+                    <span 
+                        className="clickable-label" 
+                        onClick={(e) => { e.stopPropagation(); setSelectedSource(item.sourceName || String(item.source)); setPage(1); }}
+                    >
+                        {item.sourceName || item.source}
+                    </span>
+                </p>
                 <p>{formatCategoryList(item.categories)}</p>
+                <p style={{ fontSize: '0.75rem', marginTop: '4px' }}>
+                    {renderGenreList(item.customGenre.length > 0 ? item.customGenre : item.genres)}
+                </p>
                 <div className="entry-meta">
                 <span>{item.episodes.length} episodes</span>
                 <span>{item.tracking.length} trackers</span>
                 <span>{formatDate(item.dateAdded)}</span>
+                <span 
+                    className="clickable-label"
+                    onClick={(e) => { e.stopPropagation(); setSelectedStatus(item.customStatus !== 0 ? item.customStatus : item.status); setPage(1); }}
+                >
+                    {statusLabels[item.customStatus !== 0 ? item.customStatus : item.status] || "Unknown"}
+                </span>
                 </div>
             </article>
             ))}
@@ -317,7 +381,7 @@ export default function AnimeTable({
       ) : (
         <div className="grid-view" style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 140px), 1fr))', 
             gap: '12px',
             marginTop: '12px'
         }}>
@@ -481,6 +545,10 @@ export default function AnimeTable({
             <div className="detail-block">
               <h4>Categories</h4>
               <p>{formatCategoryList(selected.categories)}</p>
+            </div>
+            <div className="detail-block">
+              <h4>Genres</h4>
+              <p>{renderGenreList(selected.customGenre.length > 0 ? selected.customGenre : selected.genres)}</p>
             </div>
             {selected.description && (
               <div className="detail-block">

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { UiAnime, UiCategory } from "../lib/types";
+import { formatDuration } from "../lib/utils";
 
 type Props = {
   anime: UiAnime[];
@@ -16,16 +17,21 @@ export default function CategoriesSection({
 }: Props) {
   const rows = useMemo(() => {
     const counts = new Map<number, number>();
+    const minutes = new Map<number, number>();
+    
     anime.forEach((entry) => {
-      entry.categories.forEach((order) =>
-        counts.set(order, (counts.get(order) ?? 0) + 1),
-      );
+      entry.categories.forEach((order) => {
+        counts.set(order, (counts.get(order) ?? 0) + 1);
+        minutes.set(order, (minutes.get(order) ?? 0) + (entry.episodes.length * 20));
+      });
     });
+    
     return [...categories]
       .sort((a, b) => a.order - b.order)
       .map((category) => ({
         ...category,
         entryCount: counts.get(category.order) ?? 0,
+        totalMinutes: minutes.get(category.order) ?? 0,
       }));
   }, [anime, categories]);
 
@@ -58,6 +64,7 @@ export default function CategoriesSection({
             </div>
             <p>Order: {category.order}</p>
             <p>Linked entries: {category.entryCount}</p>
+            <p>Watch time: {formatDuration(category.totalMinutes)}</p>
             <p>Hidden: {category.hidden ? "Yes" : "No"}</p>
           </article>
         ))}
