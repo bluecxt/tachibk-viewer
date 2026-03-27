@@ -8,10 +8,12 @@ import CustomButtonEditModal from "./components/CustomButtonEditModal";
 import ExportModal from "./components/ExportModal";
 import ExtensionsSection from "./components/ExtensionsSection";
 import PreferenceTable from "./components/PreferenceTable";
+import PreferenceEditModal from "./components/PreferenceEditModal";
 import RepoEditModal from "./components/RepoEditModal";
 import ReposSection from "./components/ReposSection";
 import SourcePreferencesSection from "./components/SourcePreferencesSection";
 import SourcesSection from "./components/SourcesSection";
+import StatisticsSection from "./components/StatisticsSection";
 import SummaryCards, { type SummaryTarget } from "./components/SummaryCards";
 import {
   deleteStoredBackupFile,
@@ -26,10 +28,13 @@ import type {
   UiCategory,
   UiCustomButton,
   UiExtensionRepo,
+  UiPreference,
+  UiSourcePreference,
 } from "./lib/types";
 
 type SectionId =
   | "summary"
+  | "stats"
   | "library"
   | "advanced"
   | "categories"
@@ -62,10 +67,19 @@ export default function App() {
     index: number;
     item: UiCustomButton;
   } | null>(null);
+  const [editingPreference, setEditingPreference] = useState<{
+    index: number;
+    item: UiPreference;
+  } | null>(null);
+  const [editingSourcePrefs, setEditingSourcePrefs] = useState<{
+    sourceIndex: number;
+    prefIndex: number | null;
+  } | null>(null);
 
   const sections = useMemo(
     () => [
       { id: "summary" as const, label: "Summary" },
+      { id: "stats" as const, label: "Stats" },
       { id: "library" as const, label: "Anime" },
       { id: "advanced" as const, label: "Advanced" },
       { id: "categories" as const, label: "Categories" },
@@ -258,6 +272,32 @@ export default function App() {
     });
   }
 
+  function handleUpdatePreference(index: number, updated: UiPreference) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        preferences: prev.preferences.map((item, i) => i === index ? updated : item)
+      };
+    });
+  }
+
+  function handleUpdateSourcePreference(sourceIndex: number, prefIndex: number, updated: UiPreference) {
+    setBackup((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        sourcePreferences: prev.sourcePreferences.map((s, si) => {
+            if (si !== sourceIndex) return s;
+            return {
+                ...s,
+                prefs: s.prefs.map((p, pi) => pi === prefIndex ? updated : p)
+            };
+        })
+      };
+    });
+  }
+
   function handleAddCustomButton() {
     setBackup((prev) => {
         if (!prev) return prev;
@@ -389,8 +429,12 @@ export default function App() {
                   : "Modern format detected"}
               </p>
             </div>
-            <SummaryCards backup={backup} onOpen={openSummaryTarget} />
+            <SummaryCards backup={backup} onOpen={(target) => setSection(target as SectionId)} />
           </section>
+        )}
+
+        {backup && section === "stats" && (
+          <StatisticsSection anime={backup.anime} />
         )}
 
         {backup && section === "library" && (
@@ -439,13 +483,32 @@ export default function App() {
         )}
 
         {backup && section === "preferences" && (
-          <PreferenceTable preferences={backup.preferences} />
+          <PreferenceTable 
+            preferences={backup.preferences} 
+            onEditPreference={(index) => setEditingPreference({ index, item: backup.preferences[index] })}
+          />
         )}
 
         {backup && section === "sourcePrefs" && (
-          <SourcePreferencesSection
-            sourcePreferences={backup.sourcePreferences}
-          />
+          <>
+            {editingSourcePrefs && editingSourcePrefs.prefIndex === null ? (
+                <div className="panel">
+                    <div className="panel-head">
+                        <h3>Editing: {backup.sourcePreferences[editingSourcePrefs.sourceIndex].sourceKey}</h3>
+                        <button className="modal-close" onClick={() => setEditingSourcePrefs(null)}>Back</button>
+                    </div>
+                    <PreferenceTable 
+                        preferences={backup.sourcePreferences[editingSourcePrefs.sourceIndex].prefs}
+                        onEditPreference={(pi) => setEditingSourcePrefs(prev => prev ? { ...prev, prefIndex: pi } : null)}
+                    />
+                </div>
+            ) : (
+                <SourcePreferencesSection
+                    sourcePreferences={backup.sourcePreferences}
+                    onEditSource={(index) => setEditingSourcePrefs({ sourceIndex: index, prefIndex: null })}
+                />
+            )}
+          </>
         )}
 
         {backup && section === "extensions" && (
@@ -525,6 +588,28 @@ export default function App() {
           onDelete={() => {
               handleDeleteCustomButton(editingCustomButton.index);
               setEditingCustomButton(null);
+          }}
+        />
+      )}
+
+      {backup && editingPreference && (
+        <PreferenceEditModal
+          preference={editingPreference.item}
+          onClose={() => setEditingPreference(null)}
+          onSave={(updated) => {
+            handleUpdatePreference(editingPreference.index, updated);
+            setEditingPreference(null);
+          }}
+        />
+      )}
+
+      {backup && editingSourcePrefs && editingSourcePrefs.prefIndex !== null && (
+        <PreferenceEditModal
+          preference={backup.sourcePreferences[editingSourcePrefs.sourceIndex].prefs[editingSourcePrefs.prefIndex]}
+          onClose={() => setEditingSourcePrefs(prev => prev ? { ...prev, prefIndex: null } : null)}
+          onSave={(updated) => {
+            handleUpdateSourcePreference(editingSourcePrefs.sourceIndex, editingSourcePrefs.prefIndex!, updated);
+            setEditingSourcePrefs(prev => prev ? { ...prev, prefIndex: null } : null);
           }}
         />
       )}

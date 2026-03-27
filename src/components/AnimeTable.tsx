@@ -92,6 +92,7 @@ export default function AnimeTable({
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [pageSize, setPageSize] = useState(80);
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [selected, setSelected] = useState<UiAnime | null>(null);
   const [editing, setEditing] = useState<UiAnime | null>(null);
 
@@ -137,11 +138,26 @@ export default function AnimeTable({
       if (onlyFavorites && !item.favorite) return false;
       if (onlyTracked && item.tracking.length === 0) return false;
       if (!q) return true;
-      return (
+      
+      const inBasic = 
         item.title.toLowerCase().includes(q) ||
+        item.customTitle?.toLowerCase().includes(q) ||
         item.url.toLowerCase().includes(q) ||
-        item.sourceName.toLowerCase().includes(q)
-      );
+        item.sourceName.toLowerCase().includes(q);
+      
+      if (inBasic) return true;
+
+      // Global Search: descriptions, notes, trackers
+      const inDescription = item.description?.toLowerCase().includes(q) || item.customDescription?.toLowerCase().includes(q);
+      if (inDescription) return true;
+
+      const inNotes = item.notes.toLowerCase().includes(q);
+      if (inNotes) return true;
+
+      const inTrackers = item.tracking.some(t => t.title.toLowerCase().includes(q) || t.trackingUrl.toLowerCase().includes(q));
+      if (inTrackers) return true;
+
+      return false;
     });
 
     return scoped.sort((a, b) => {
@@ -204,7 +220,7 @@ export default function AnimeTable({
             setFilter(event.target.value);
             setPage(1);
           }}
-          placeholder="Search title, URL, source"
+          placeholder="Global search (title, notes, desc...)"
         />
         <select
           value={sortBy}
@@ -223,6 +239,13 @@ export default function AnimeTable({
         >
           <option value="asc">Order: Asc</option>
           <option value="desc">Order: Desc</option>
+        </select>
+        <select
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value as "list" | "grid")}
+        >
+            <option value="list">View: List</option>
+            <option value="grid">View: Grid</option>
         </select>
         <select
           value={String(pageSize)}
@@ -260,36 +283,94 @@ export default function AnimeTable({
         </label>
       </div>
 
-      <div className="entries-list">
-        {visible.map((item) => (
-          <article
-            key={item.id}
-            className="entry-card"
-            onClick={() => setSelected(item)}
-          >
-            <div className="entry-head">
-              <h3>{item.customTitle || item.title || "(untitled)"}</h3>
-              <button
-                type="button"
-                className="entry-edit-btn"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setEditing(item);
-                }}
-              >
-                Edit
-              </button>
-            </div>
-            <p>{item.sourceName || item.source}</p>
-            <p>{formatCategoryList(item.categories)}</p>
-            <div className="entry-meta">
-              <span>{item.episodes.length} episodes</span>
-              <span>{item.tracking.length} trackers</span>
-              <span>{formatDate(item.dateAdded)}</span>
-            </div>
-          </article>
-        ))}
-      </div>
+      {viewMode === "list" ? (
+        <div className="entries-list">
+            {visible.map((item) => (
+            <article
+                key={item.id}
+                className="entry-card"
+                onClick={() => setSelected(item)}
+            >
+                <div className="entry-head">
+                <h3>{item.customTitle || item.title || "(untitled)"}</h3>
+                <button
+                    type="button"
+                    className="entry-edit-btn"
+                    onClick={(event) => {
+                    event.stopPropagation();
+                    setEditing(item);
+                    }}
+                >
+                    Edit
+                </button>
+                </div>
+                <p>{item.sourceName || item.source}</p>
+                <p>{formatCategoryList(item.categories)}</p>
+                <div className="entry-meta">
+                <span>{item.episodes.length} episodes</span>
+                <span>{item.tracking.length} trackers</span>
+                <span>{formatDate(item.dateAdded)}</span>
+                </div>
+            </article>
+            ))}
+        </div>
+      ) : (
+        <div className="grid-view" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+            gap: '12px',
+            marginTop: '12px'
+        }}>
+            {visible.map((item) => (
+                <article 
+                    key={item.id} 
+                    className="grid-card"
+                    onClick={() => setSelected(item)}
+                    style={{
+                        position: 'relative',
+                        aspectRatio: '2/3',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        background: '#0d1119',
+                        border: '1px solid var(--line-soft)',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {item.thumbnailUrl ? (
+                        <img 
+                            src={item.thumbnailUrl} 
+                            alt={item.title} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'var(--text-dim)' }}>
+                            No Image
+                        </div>
+                    )}
+                    <div style={{
+                        position: 'absolute',
+                        inset: '0',
+                        background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 60%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        padding: '8px'
+                    }}>
+                        <h4 style={{ margin: 0, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.customTitle || item.title || "(untitled)"}
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '0.7rem', color: '#8f9bb0' }}>{item.sourceName || item.source}</p>
+                    </div>
+                    {item.favorite && (
+                        <div style={{ position: 'absolute', top: '5px', right: '5px', background: '#113725', color: '#86efac', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid #2f7e62' }}>
+                            ★
+                        </div>
+                    )}
+                </article>
+            ))}
+        </div>
+      )}
 
       <div className="pager">
         <button

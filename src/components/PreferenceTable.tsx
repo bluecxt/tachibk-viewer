@@ -2,9 +2,10 @@ import type { UiPreference } from "../lib/types";
 
 type Props = {
   preferences: UiPreference[];
+  onEditPreference: (index: number) => void;
 };
 
-export default function PreferenceTable({ preferences }: Props) {
+export default function PreferenceTable({ preferences, onEditPreference }: Props) {
   if (preferences.length === 0) {
     return null;
   }
@@ -16,9 +17,18 @@ export default function PreferenceTable({ preferences }: Props) {
         <p>Values decoded with heuristics</p>
       </div>
       <div className="kv-list">
-        {preferences.map((pref) => (
+        {preferences.map((pref, index) => (
           <article key={pref.key} className="kv-item">
-            <h3>{pref.key}</h3>
+            <div className="kv-card-head">
+                <h3>{pref.key}</h3>
+                <button
+                    type="button"
+                    className="entry-edit-btn"
+                    onClick={() => onEditPreference(index)}
+                >
+                    Edit
+                </button>
+            </div>
             <p>{pref.valuePreview}</p>
           </article>
         ))}

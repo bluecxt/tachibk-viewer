@@ -2,9 +2,10 @@ import type { UiSourcePreference } from "../lib/types";
 
 type Props = {
   sourcePreferences: UiSourcePreference[];
+  onEditSource: (index: number) => void;
 };
 
-export default function SourcePreferencesSection({ sourcePreferences }: Props) {
+export default function SourcePreferencesSection({ sourcePreferences, onEditSource }: Props) {
   return (
     <section className="panel" id="source-prefs">
       <div className="panel-head">
@@ -12,9 +13,18 @@ export default function SourcePreferencesSection({ sourcePreferences }: Props) {
         <p>{sourcePreferences.length} configured sources</p>
       </div>
       <div className="kv-list">
-        {sourcePreferences.map((item) => (
+        {sourcePreferences.map((item, index) => (
           <article key={item.sourceKey} className="kv-item">
-            <h3>{item.sourceKey || "(no key)"}</h3>
+            <div className="kv-card-head">
+                <h3>{item.sourceKey || "(no key)"}</h3>
+                <button
+                    type="button"
+                    className="entry-edit-btn"
+                    onClick={() => onEditSource(index)}
+                >
+                    Edit
+                </button>
+            </div>
             <p>Preferences count: {item.prefs.length}</p>
           </article>
         ))}
