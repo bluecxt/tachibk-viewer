@@ -13,10 +13,12 @@ export default function StatisticsSection({ anime }: Props) {
     const sources = new Map<string, number>();
     let favorites = 0;
     let totalEpisodes = 0;
+    let seenEpisodes = 0;
 
     anime.forEach((item) => {
       if (item.favorite) favorites++;
       totalEpisodes += item.episodes.length;
+      seenEpisodes += item.episodes.filter(ep => ep.seen).length;
 
       const gList = item.customGenre.length > 0 ? item.customGenre : item.genres;
       gList.forEach((g) => genres.set(g, (genres.get(g) ?? 0) + 1));
@@ -36,8 +38,9 @@ export default function StatisticsSection({ anime }: Props) {
       sources: sortedSources,
       favorites,
       totalEpisodes,
+      seenEpisodes,
       totalAnime: anime.length,
-      totalMinutes: totalEpisodes * 20
+      totalMinutes: seenEpisodes * 20
     };
   }, [anime]);
 
@@ -67,12 +70,12 @@ export default function StatisticsSection({ anime }: Props) {
             <strong>{stats.totalEpisodes}</strong>
         </div>
         <div className="stat-card">
-            <p>Total Watch Time</p>
-            <strong>{formatDuration(stats.totalMinutes)}</strong>
+            <p>Seen Episodes</p>
+            <strong>{stats.seenEpisodes}</strong>
         </div>
         <div className="stat-card">
-            <p>Avg. Episodes</p>
-            <strong>{stats.totalAnime > 0 ? (stats.totalEpisodes / stats.totalAnime).toFixed(1) : 0}</strong>
+            <p>Total Watch Time (Seen)</p>
+            <strong>{formatDuration(stats.totalMinutes)}</strong>
         </div>
       </div>
 

@@ -20,9 +20,10 @@ export default function CategoriesSection({
     const minutes = new Map<number, number>();
     
     anime.forEach((entry) => {
+      const seenMinutes = entry.episodes.filter(ep => ep.seen).length * 20;
       entry.categories.forEach((order) => {
         counts.set(order, (counts.get(order) ?? 0) + 1);
-        minutes.set(order, (minutes.get(order) ?? 0) + (entry.episodes.length * 20));
+        minutes.set(order, (minutes.get(order) ?? 0) + seenMinutes);
       });
     });
     
@@ -64,7 +65,7 @@ export default function CategoriesSection({
             </div>
             <p>Order: {category.order}</p>
             <p>Linked entries: {category.entryCount}</p>
-            <p>Watch time: {formatDuration(category.totalMinutes)}</p>
+            <p>Seen watch time: {formatDuration(category.totalMinutes)}</p>
             <p>Hidden: {category.hidden ? "Yes" : "No"}</p>
           </article>
         ))}
