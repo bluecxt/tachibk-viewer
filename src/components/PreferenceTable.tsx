@@ -12,8 +12,8 @@ export default function PreferenceTable({ preferences }: Props) {
   return (
     <section className="panel">
       <div className="panel-head">
-        <h2>Préférences (aperçu)</h2>
-        <p>Valeurs décodées de façon heuristique</p>
+        <h2>Preferences (preview)</h2>
+        <p>Values decoded with heuristics</p>
       </div>
       <div className="kv-list">
         {preferences.map((pref) => (

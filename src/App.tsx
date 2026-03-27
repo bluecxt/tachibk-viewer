@@ -45,16 +45,16 @@ export default function App() {
 
   const sections = useMemo(
     () => [
-      { id: "summary" as const, label: "Résumé" },
+      { id: "summary" as const, label: "Summary" },
       { id: "library" as const, label: "Anime" },
-      { id: "advanced" as const, label: "Infos avancées" },
-      { id: "categories" as const, label: "Catégories" },
+      { id: "advanced" as const, label: "Advanced" },
+      { id: "categories" as const, label: "Categories" },
       { id: "sources" as const, label: "Sources" },
-      { id: "preferences" as const, label: "Préférences" },
-      { id: "sourcePrefs" as const, label: "Prefs sources" },
+      { id: "preferences" as const, label: "Preferences" },
+      { id: "sourcePrefs" as const, label: "Source preferences" },
       { id: "extensions" as const, label: "Extensions" },
       { id: "repos" as const, label: "Repos" },
-      { id: "customButtons" as const, label: "Boutons" },
+      { id: "customButtons" as const, label: "Buttons" },
     ],
     [],
   );
@@ -83,7 +83,7 @@ export default function App() {
     } catch (err) {
       setBackup(null);
       setError(
-        err instanceof Error ? err.message : "Impossible de parser ce fichier",
+        err instanceof Error ? err.message : "Unable to parse this file",
       );
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ export default function App() {
     try {
       const buffer = await getStoredBackupFileBuffer(item.id);
       if (!buffer) {
-        throw new Error("Fichier introuvable dans le stockage local");
+        throw new Error("File not found in local storage");
       }
       const parsed = await parseBackupBufferWithWorker(buffer.slice(0));
       setBackup(parsed);
@@ -106,9 +106,7 @@ export default function App() {
       setAdvancedAnimeId(parsed.anime[0]?.id ?? null);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Impossible de charger cet historique",
+        err instanceof Error ? err.message : "Unable to load this history item",
       );
     } finally {
       setLoading(false);
@@ -122,7 +120,7 @@ export default function App() {
   }
 
   function formatShortDate(ts: number) {
-    return new Intl.DateTimeFormat("fr-FR", {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "short",
       timeStyle: "short",
     }).format(ts);
@@ -150,7 +148,7 @@ export default function App() {
         <p className="badge">Tachibk Viewer</p>
         <h1>aniZen backup</h1>
         <label htmlFor="backupFile" className="upload-label">
-          Importer un fichier
+          Import file
         </label>
         <input
           id="backupFile"
@@ -163,7 +161,7 @@ export default function App() {
           }}
         />
         {fileName && <p className="meta-line">{fileName}</p>}
-        {loading && <p className="meta-line">Parsing en cours...</p>}
+        {loading && <p className="meta-line">Parsing...</p>}
         {error && <p className="error">{error}</p>}
         <button
           type="button"
@@ -189,16 +187,16 @@ export default function App() {
         </nav>
 
         <section className="history-box">
-          <h2>Historique local</h2>
+          <h2>Local history</h2>
           {historyFiles.length === 0 && (
-            <p className="meta-line">Aucun fichier stocké</p>
+            <p className="meta-line">No stored files</p>
           )}
           {historyFiles.map((item) => (
             <article key={item.id} className="history-item">
               <div>
                 <p className="history-name">{item.name}</p>
                 <p className="history-meta">
-                  {Math.round(item.size / 1024)} Ko •{" "}
+                  {Math.round(item.size / 1024)} KB •{" "}
                   {formatShortDate(item.importedAt)}
                 </p>
               </div>
@@ -208,7 +206,7 @@ export default function App() {
                   onClick={() => void handleLoadHistoryItem(item)}
                   disabled={loading}
                 >
-                  {historyLoadingId === item.id ? "..." : "Ouvrir"}
+                  {historyLoadingId === item.id ? "..." : "Open"}
                 </button>
                 <button
                   type="button"
@@ -226,8 +224,8 @@ export default function App() {
         {!backup && (
           <section className="panel">
             <div className="panel-head">
-              <h2>Aucun backup chargé</h2>
-              <p>Importe un fichier `.tachibk` dans la barre de gauche.</p>
+              <h2>No backup loaded</h2>
+              <p>Import a `.tachibk` file from the left sidebar.</p>
             </div>
           </section>
         )}
@@ -235,11 +233,11 @@ export default function App() {
         {backup && section === "summary" && (
           <section className="panel" id="summary">
             <div className="panel-head">
-              <h2>Résumé</h2>
+              <h2>Summary</h2>
               <p>
                 {backup.isLegacy
-                  ? "Format legacy détecté"
-                  : "Format moderne détecté"}
+                  ? "Legacy format detected"
+                  : "Modern format detected"}
               </p>
             </div>
             <SummaryCards backup={backup} onOpen={openSummaryTarget} />

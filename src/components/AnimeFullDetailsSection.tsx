@@ -6,7 +6,7 @@ type Props = {
   onBack: () => void;
 };
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeStyle: "short",
 });
@@ -18,18 +18,24 @@ function formatDate(value: number): string {
 }
 
 function toCategoryNames(values: number[], categories: UiCategory[]): string {
-  if (values.length === 0) return "Aucune";
-  const map = new Map(categories.map((cat) => [cat.order, cat.name || `Cat ${cat.order}`]));
+  if (values.length === 0) return "None";
+  const map = new Map(
+    categories.map((cat) => [cat.order, cat.name || `Cat ${cat.order}`]),
+  );
   return values.map((id) => map.get(id) ?? `ID ${id}`).join(", ");
 }
 
-export default function AnimeFullDetailsSection({ anime, categories, onBack }: Props) {
+export default function AnimeFullDetailsSection({
+  anime,
+  categories,
+  onBack,
+}: Props) {
   if (!anime) {
     return (
       <section className="panel">
         <div className="panel-head">
-          <h2>Infos avancées</h2>
-          <p>Aucun anime sélectionné</p>
+          <h2>Advanced details</h2>
+          <p>No selected anime</p>
         </div>
       </section>
     );
@@ -38,9 +44,9 @@ export default function AnimeFullDetailsSection({ anime, categories, onBack }: P
   return (
     <section className="panel" id="advanced">
       <div className="panel-head">
-        <h2>Infos avancées</h2>
+        <h2>Advanced details</h2>
         <button type="button" className="modal-close" onClick={onBack}>
-          Retour bibliothèque
+          Back to library
         </button>
       </div>
 
@@ -52,54 +58,54 @@ export default function AnimeFullDetailsSection({ anime, categories, onBack }: P
           <p>Parent ID: {anime.parentId ?? "-"}</p>
           <p>Source ID: {anime.source}</p>
           <p>Source: {anime.sourceName || "-"}</p>
-          <p>Titre: {anime.title || "-"}</p>
-          <p>Titre custom: {anime.customTitle || "-"}</p>
+          <p>Title: {anime.title || "-"}</p>
+          <p>Custom title: {anime.customTitle || "-"}</p>
         </article>
 
         <article className="kv-item">
-          <h3>Métadonnées</h3>
-          <p>Auteur: {anime.author || "-"}</p>
-          <p>Artiste: {anime.artist || "-"}</p>
+          <h3>Metadata</h3>
+          <p>Author: {anime.author || "-"}</p>
+          <p>Artist: {anime.artist || "-"}</p>
           <p>Status: {anime.status}</p>
           <p>Custom status: {anime.customStatus}</p>
-          <p>Favori: {anime.favorite ? "Oui" : "Non"}</p>
-          <p>Initialisé: {anime.initialized ? "Oui" : "Non"}</p>
+          <p>Favorite: {anime.favorite ? "Yes" : "No"}</p>
+          <p>Initialized: {anime.initialized ? "Yes" : "No"}</p>
           <p>Version: {anime.version}</p>
           <p>Update strategy: {anime.updateStrategy}</p>
           <p>Episode flags: {anime.episodeFlags}</p>
           <p>Viewer flags: {anime.viewerFlags}</p>
-          <p>Date ajout: {formatDate(anime.dateAdded)}</p>
-          <p>Dernière modif: {formatDate(anime.lastModifiedAt)}</p>
-          <p>Modif favori: {formatDate(anime.favoriteModifiedAt ?? 0)}</p>
+          <p>Date added: {formatDate(anime.dateAdded)}</p>
+          <p>Last modified: {formatDate(anime.lastModifiedAt)}</p>
+          <p>Favorite modified: {formatDate(anime.favoriteModifiedAt ?? 0)}</p>
         </article>
 
         <article className="kv-item">
-          <h3>Contenu texte</h3>
+          <h3>Text content</h3>
           <p>URL: {anime.url || "-"}</p>
           <p>Thumbnail: {anime.thumbnailUrl || "-"}</p>
           <p>Background: {anime.backgroundUrl || "-"}</p>
           <p>Genres: {anime.genres.join(", ") || "-"}</p>
           <p>Custom genres: {anime.customGenre.join(", ") || "-"}</p>
-          <p>Catégories: {toCategoryNames(anime.categories, categories)}</p>
+          <p>Categories: {toCategoryNames(anime.categories, categories)}</p>
           <p>Description: {anime.description || "-"}</p>
           <p>Custom description: {anime.customDescription || "-"}</p>
           <p>Notes: {anime.notes || "-"}</p>
         </article>
 
         <article className="kv-item">
-          <h3>Compteurs</h3>
-          <p>Épisodes: {anime.episodes.length}</p>
-          <p>Épisodes vus: {anime.episodes.filter((ep) => ep.seen).length}</p>
+          <h3>Counters</h3>
+          <p>Episodes: {anime.episodes.length}</p>
+          <p>Seen episodes: {anime.episodes.filter((ep) => ep.seen).length}</p>
           <p>Bookmarks: {anime.episodes.filter((ep) => ep.bookmark).length}</p>
           <p>Trackers: {anime.tracking.length}</p>
-          <p>Historique: {anime.history.length}</p>
+          <p>History: {anime.history.length}</p>
         </article>
       </div>
 
       <section className="panel" style={{ marginTop: 12 }}>
         <div className="panel-head">
-          <h2>Trackers (complet)</h2>
-          <p>{anime.tracking.length} entrées</p>
+          <h2>Trackers (full)</h2>
+          <p>{anime.tracking.length} entries</p>
         </div>
         <div className="kv-list">
           {anime.tracking.map((track, index) => (
@@ -113,8 +119,12 @@ export default function AnimeFullDetailsSection({ anime, categories, onBack }: P
               <p>lastEpisodeSeen: {track.lastEpisodeSeen}</p>
               <p>totalEpisodes: {track.totalEpisodes}</p>
               <p>trackingUrl: {track.trackingUrl || "-"}</p>
-              <p>startedWatchingDate: {formatDate(track.startedWatchingDate)}</p>
-              <p>finishedWatchingDate: {formatDate(track.finishedWatchingDate)}</p>
+              <p>
+                startedWatchingDate: {formatDate(track.startedWatchingDate)}
+              </p>
+              <p>
+                finishedWatchingDate: {formatDate(track.finishedWatchingDate)}
+              </p>
             </article>
           ))}
         </div>
@@ -122,13 +132,13 @@ export default function AnimeFullDetailsSection({ anime, categories, onBack }: P
 
       <section className="panel" style={{ marginTop: 12 }}>
         <div className="panel-head">
-          <h2>Épisodes (complet)</h2>
-          <p>{anime.episodes.length} entrées</p>
+          <h2>Episodes (full)</h2>
+          <p>{anime.episodes.length} entries</p>
         </div>
         <div className="kv-list">
           {anime.episodes.map((episode, index) => (
             <article key={`${episode.url}-${index}`} className="kv-item">
-              <h3>{episode.name || "(sans nom)"}</h3>
+              <h3>{episode.name || "(unnamed)"}</h3>
               <p>url: {episode.url || "-"}</p>
               <p>scanlator: {episode.scanlator || "-"}</p>
               <p>seen: {episode.seen ? "true" : "false"}</p>
@@ -149,13 +159,13 @@ export default function AnimeFullDetailsSection({ anime, categories, onBack }: P
 
       <section className="panel" style={{ marginTop: 12 }}>
         <div className="panel-head">
-          <h2>Historique (complet)</h2>
-          <p>{anime.history.length} entrées</p>
+          <h2>History (full)</h2>
+          <p>{anime.history.length} entries</p>
         </div>
         <div className="kv-list">
           {anime.history.map((item, index) => (
             <article key={`${item.url}-${index}`} className="kv-item">
-              <h3>{item.url || "(sans url)"}</h3>
+              <h3>{item.url || "(no url)"}</h3>
               <p>lastRead: {formatDate(item.lastRead)}</p>
               <p>readDuration: {item.readDuration}</p>
             </article>

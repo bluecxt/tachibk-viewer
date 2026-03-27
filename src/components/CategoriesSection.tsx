@@ -10,7 +10,9 @@ export default function CategoriesSection({ anime, categories }: Props) {
   const rows = useMemo(() => {
     const counts = new Map<number, number>();
     anime.forEach((entry) => {
-      entry.categories.forEach((order) => counts.set(order, (counts.get(order) ?? 0) + 1));
+      entry.categories.forEach((order) =>
+        counts.set(order, (counts.get(order) ?? 0) + 1),
+      );
     });
     return [...categories]
       .sort((a, b) => a.order - b.order)
@@ -23,16 +25,19 @@ export default function CategoriesSection({ anime, categories }: Props) {
   return (
     <section className="panel" id="categories">
       <div className="panel-head">
-        <h2>Catégories</h2>
-        <p>{rows.length} catégories</p>
+        <h2>Categories</h2>
+        <p>{rows.length} categories</p>
       </div>
       <div className="kv-list">
         {rows.map((category) => (
-          <article key={`${category.order}-${category.name}`} className="kv-item">
-            <h3>{category.name || "(sans nom)"}</h3>
+          <article
+            key={`${category.order}-${category.name}`}
+            className="kv-item"
+          >
+            <h3>{category.name || "(unnamed)"}</h3>
             <p>Order: {category.order}</p>
-            <p>Entrées liées: {category.entryCount}</p>
-            <p>Hidden: {category.hidden ? "Oui" : "Non"}</p>
+            <p>Linked entries: {category.entryCount}</p>
+            <p>Hidden: {category.hidden ? "Yes" : "No"}</p>
           </article>
         ))}
       </div>

@@ -19,18 +19,18 @@ export default function SummaryCards({ backup, onOpen }: Props) {
   const cards = [
     { label: "Anime", value: backup.animeCount, target: "library" as const },
     {
-      label: "Catégories",
+      label: "Categories",
       value: backup.categoryCount,
       target: "categories" as const,
     },
     { label: "Sources", value: backup.sourceCount, target: "sources" as const },
     {
-      label: "Préférences",
+      label: "Preferences",
       value: backup.preferenceCount,
       target: "preferences" as const,
     },
     {
-      label: "Prefs sources",
+      label: "Source preferences",
       value: backup.sourcePreferenceCount,
       target: "sourcePrefs" as const,
     },
@@ -45,7 +45,7 @@ export default function SummaryCards({ backup, onOpen }: Props) {
       target: "repos" as const,
     },
     {
-      label: "Boutons",
+      label: "Buttons",
       value: backup.customButtonCount,
       target: "customButtons" as const,
     },
@@ -60,7 +60,7 @@ export default function SummaryCards({ backup, onOpen }: Props) {
           onClick={() => onOpen(card.target)}
         >
           <p>{card.label}</p>
-          <strong>{card.value.toLocaleString("fr-FR")}</strong>
+          <strong>{card.value.toLocaleString("en-US")}</strong>
         </article>
       ))}
     </section>

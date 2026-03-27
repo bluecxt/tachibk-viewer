@@ -14,10 +14,13 @@ export default function SourcesSection({ sources }: Props) {
       <div className="kv-list">
         {sources
           .slice()
-          .sort((a, b) => a.name.localeCompare(b.name, "fr"))
+          .sort((a, b) => a.name.localeCompare(b.name, "en"))
           .map((source) => (
-            <article key={`${source.sourceId}-${source.name}`} className="kv-item">
-              <h3>{source.name || "(sans nom)"}</h3>
+            <article
+              key={`${source.sourceId}-${source.name}`}
+              className="kv-item"
+            >
+              <h3>{source.name || "(unnamed)"}</h3>
               <p>Source ID: {source.sourceId}</p>
             </article>
           ))}

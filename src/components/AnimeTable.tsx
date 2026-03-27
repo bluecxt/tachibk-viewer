@@ -17,7 +17,7 @@ type SortBy =
   | "tracking"
   | "source";
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeStyle: "short",
 });
@@ -38,7 +38,7 @@ function isHttpLink(value: string | null | undefined): value is string {
 }
 
 function linkOrCode(value: string) {
-  if (!value) return <code>(vide)</code>;
+  if (!value) return <code>(empty)</code>;
   if (isHttpLink(value)) {
     return (
       <a href={value} target="_blank" rel="noreferrer">
@@ -113,8 +113,8 @@ export default function AnimeTable({
       );
     });
     return [
-      { id: "all", label: "Toutes", count: anime.length },
-      { id: "uncategorized", label: "Sans catégorie", count: uncategorized },
+      { id: "all", label: "All", count: anime.length },
+      { id: "uncategorized", label: "Uncategorized", count: uncategorized },
       ...categories
         .slice()
         .sort((a, b) => a.order - b.order)
@@ -147,7 +147,7 @@ export default function AnimeTable({
     return scoped.sort((a, b) => {
       const factor = sortDir === "asc" ? 1 : -1;
       if (sortBy === "title")
-        return factor * a.title.localeCompare(b.title, "fr");
+        return factor * a.title.localeCompare(b.title, "en");
       if (sortBy === "dateAdded") return factor * (a.dateAdded - b.dateAdded);
       if (sortBy === "lastModified")
         return factor * (a.lastModifiedAt - b.lastModifiedAt);
@@ -155,7 +155,7 @@ export default function AnimeTable({
         return factor * (a.episodes.length - b.episodes.length);
       if (sortBy === "tracking")
         return factor * (a.tracking.length - b.tracking.length);
-      return factor * a.sourceName.localeCompare(b.sourceName, "fr");
+      return factor * a.sourceName.localeCompare(b.sourceName, "en");
     });
   }, [activeTab, anime, filter, onlyFavorites, onlyTracked, sortBy, sortDir]);
 
@@ -167,7 +167,7 @@ export default function AnimeTable({
   );
 
   function formatCategoryList(categoryOrders: number[]) {
-    if (categoryOrders.length === 0) return "Aucune";
+    if (categoryOrders.length === 0) return "None";
     return categoryOrders
       .map((order) => categoryByOrder.get(order) ?? `ID ${order}`)
       .join(", ");
@@ -176,8 +176,8 @@ export default function AnimeTable({
   return (
     <section className="panel" id="library">
       <div className="panel-head">
-        <h2>Bibliothèque anime</h2>
-        <p>{filtered.length.toLocaleString("fr-FR")} résultats</p>
+        <h2>Anime library</h2>
+        <p>{filtered.length.toLocaleString("en-US")} results</p>
       </div>
 
       <div className="tabs-row no-scroll-row">
@@ -204,25 +204,25 @@ export default function AnimeTable({
             setFilter(event.target.value);
             setPage(1);
           }}
-          placeholder="Rechercher titre, URL, source"
+          placeholder="Search title, URL, source"
         />
         <select
           value={sortBy}
           onChange={(event) => setSortBy(event.target.value as SortBy)}
         >
-          <option value="title">Tri: Titre</option>
-          <option value="dateAdded">Tri: Date ajout</option>
-          <option value="lastModified">Tri: Dernière modif</option>
-          <option value="episodes">Tri: Nombre épisodes</option>
-          <option value="tracking">Tri: Nombre trackers</option>
-          <option value="source">Tri: Source</option>
+          <option value="title">Sort: Title</option>
+          <option value="dateAdded">Sort: Date added</option>
+          <option value="lastModified">Sort: Last modified</option>
+          <option value="episodes">Sort: Episode count</option>
+          <option value="tracking">Sort: Tracker count</option>
+          <option value="source">Sort: Source</option>
         </select>
         <select
           value={sortDir}
           onChange={(event) => setSortDir(event.target.value as "asc" | "desc")}
         >
-          <option value="asc">Ordre: Asc</option>
-          <option value="desc">Ordre: Desc</option>
+          <option value="asc">Order: Asc</option>
+          <option value="desc">Order: Desc</option>
         </select>
         <select
           value={String(pageSize)}
@@ -245,7 +245,7 @@ export default function AnimeTable({
               setPage(1);
             }}
           />
-          Favoris
+          Favorites
         </label>
         <label>
           <input
@@ -256,7 +256,7 @@ export default function AnimeTable({
               setPage(1);
             }}
           />
-          Trackés
+          With trackers
         </label>
       </div>
 
@@ -268,7 +268,7 @@ export default function AnimeTable({
             onClick={() => setSelected(item)}
           >
             <div className="entry-head">
-              <h3>{item.customTitle || item.title || "(sans titre)"}</h3>
+              <h3>{item.customTitle || item.title || "(untitled)"}</h3>
               <button
                 type="button"
                 className="entry-edit-btn"
@@ -283,7 +283,7 @@ export default function AnimeTable({
             <p>{item.sourceName || item.source}</p>
             <p>{formatCategoryList(item.categories)}</p>
             <div className="entry-meta">
-              <span>{item.episodes.length} épisodes</span>
+              <span>{item.episodes.length} episodes</span>
               <span>{item.tracking.length} trackers</span>
               <span>{formatDate(item.dateAdded)}</span>
             </div>
@@ -297,7 +297,7 @@ export default function AnimeTable({
           disabled={safePage <= 1}
           onClick={() => setPage((p) => Math.max(1, p - 1))}
         >
-          Précédent
+          Previous
         </button>
         <span>
           Page {safePage} / {pageCount}
@@ -307,7 +307,7 @@ export default function AnimeTable({
           disabled={safePage >= pageCount}
           onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
         >
-          Suivant
+          Next
         </button>
       </div>
 
@@ -331,42 +331,42 @@ export default function AnimeTable({
                   setSelected(null);
                 }}
               >
-                Infos avancées
+                Advanced details
               </button>
               <button
                 type="button"
                 className="modal-close"
                 onClick={() => setSelected(null)}
               >
-                Fermer
+                Close
               </button>
             </div>
-            <h3>{selected.customTitle || selected.title || "(sans titre)"}</h3>
+            <h3>{selected.customTitle || selected.title || "(untitled)"}</h3>
             <p className="muted">{selected.sourceName || selected.source}</p>
 
             <div className="detail-grid">
               <p>
-                <span>ID entrée</span>
+                <span>Entry ID</span>
                 <b>{selected.entryId ?? "-"}</b>
               </p>
               <p>
-                <span>Ajout</span>
+                <span>Added</span>
                 <b>{formatDate(selected.dateAdded)}</b>
               </p>
               <p>
-                <span>Modifié</span>
+                <span>Modified</span>
                 <b>{formatDate(selected.lastModifiedAt)}</b>
               </p>
               <p>
-                <span>Favori</span>
-                <b>{selected.favorite ? "Oui" : "Non"}</b>
+                <span>Favorite</span>
+                <b>{selected.favorite ? "Yes" : "No"}</b>
               </p>
               <p>
-                <span>Initialisé</span>
-                <b>{selected.initialized ? "Oui" : "Non"}</b>
+                <span>Initialized</span>
+                <b>{selected.initialized ? "Yes" : "No"}</b>
               </p>
               <p>
-                <span>Épisodes</span>
+                <span>Episodes</span>
                 <b>{selected.episodes.length}</b>
               </p>
               <p>
@@ -374,7 +374,7 @@ export default function AnimeTable({
                 <b>{selected.tracking.length}</b>
               </p>
               <p>
-                <span>Vus (interne)</span>
+                <span>Seen (internal)</span>
                 <b>{selected.episodes.filter((ep) => ep.seen).length}</b>
               </p>
               <p>
@@ -382,11 +382,11 @@ export default function AnimeTable({
                 <b>{selected.episodes.filter((ep) => ep.bookmark).length}</b>
               </p>
               <p>
-                <span>Historique lecture</span>
+                <span>Reading history</span>
                 <b>{selected.history.length}</b>
               </p>
               <p>
-                <span>Dernière lecture</span>
+                <span>Last read</span>
                 <b>
                   {selected.history.length > 0
                     ? formatDate(
@@ -398,7 +398,7 @@ export default function AnimeTable({
             </div>
 
             <div className="detail-block">
-              <h4>Catégories</h4>
+              <h4>Categories</h4>
               <p>{formatCategoryList(selected.categories)}</p>
             </div>
             {selected.description && (
@@ -414,7 +414,7 @@ export default function AnimeTable({
               </div>
             )}
             <div className="detail-block">
-              <h4>Liens</h4>
+              <h4>Links</h4>
               <p>{linkOrCode(selected.url)}</p>
               {selected.thumbnailUrl && (
                 <p>{linkOrCode(selected.thumbnailUrl)}</p>
@@ -439,10 +439,10 @@ export default function AnimeTable({
                         <h3>
                           {track.title ||
                             (isInternal
-                              ? "Tracker interne"
+                              ? "Internal tracker"
                               : `Tracker ${track.trackerId}`)}
                         </h3>
-                        <p>Type: {isInternal ? "Interne" : "Externe"}</p>
+                        <p>Type: {isInternal ? "Internal" : "External"}</p>
                         <p>Tracker ID: {track.trackerId}</p>
                         <p>Library ID: {track.libraryId || "-"}</p>
                         <p>Media ID: {track.mediaId || "-"}</p>
@@ -453,12 +453,12 @@ export default function AnimeTable({
                         </p>
                         <p>Score: {track.score}</p>
                         <p>
-                          Progression: {track.lastEpisodeSeen} /{" "}
+                          Progress: {track.lastEpisodeSeen} /{" "}
                           {track.totalEpisodes || "-"}
                         </p>
-                        <p>Début: {formatDate(track.startedWatchingDate)}</p>
-                        <p>Fin: {formatDate(track.finishedWatchingDate)}</p>
-                        <p>Lien: {linkOrCode(track.trackingUrl)}</p>
+                        <p>Start: {formatDate(track.startedWatchingDate)}</p>
+                        <p>End: {formatDate(track.finishedWatchingDate)}</p>
+                        <p>Link: {linkOrCode(track.trackingUrl)}</p>
                       </article>
                     );
                   })}

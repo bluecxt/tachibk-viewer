@@ -42,7 +42,12 @@ function parseCategories(csv: string): number[] {
   return [...new Set(parsed)];
 }
 
-export default function AnimeEditModal({ anime, categories, onClose, onSave }: Props) {
+export default function AnimeEditModal({
+  anime,
+  categories,
+  onClose,
+  onSave,
+}: Props) {
   const [form, setForm] = useState<FormState>(() => toForm(anime));
 
   useEffect(() => {
@@ -50,11 +55,19 @@ export default function AnimeEditModal({ anime, categories, onClose, onSave }: P
   }, [anime]);
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="modal-content" onClick={(event) => event.stopPropagation()}>
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div
+        className="modal-content"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="modal-actions">
           <button type="button" className="modal-close" onClick={onClose}>
-            Fermer
+            Close
           </button>
           <button
             type="button"
@@ -74,27 +87,32 @@ export default function AnimeEditModal({ anime, categories, onClose, onSave }: P
               })
             }
           >
-            Sauvegarder
+            Save
           </button>
         </div>
 
-        <h3>Éditer anime</h3>
-        <p className="muted">Modifie les données locales affichées dans l’application.</p>
+        <h3>Edit anime</h3>
+        <p className="muted">Update the local data displayed by this app.</p>
 
         <div className="edit-grid">
           <label>
-            Titre
+            Title
             <input
               value={form.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, title: event.target.value }))
+              }
             />
           </label>
           <label>
-            Titre custom
+            Custom title
             <input
               value={form.customTitle}
               onChange={(event) =>
-                setForm((prev) => ({ ...prev, customTitle: event.target.value }))
+                setForm((prev) => ({
+                  ...prev,
+                  customTitle: event.target.value,
+                }))
               }
             />
           </label>
@@ -102,11 +120,13 @@ export default function AnimeEditModal({ anime, categories, onClose, onSave }: P
             URL
             <input
               value={form.url}
-              onChange={(event) => setForm((prev) => ({ ...prev, url: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, url: event.target.value }))
+              }
             />
           </label>
           <label>
-            Source (nom)
+            Source (name)
             <input
               value={form.sourceName}
               onChange={(event) =>
@@ -119,15 +139,20 @@ export default function AnimeEditModal({ anime, categories, onClose, onSave }: P
             <input
               type="number"
               value={form.status}
-              onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, status: event.target.value }))
+              }
             />
           </label>
           <label>
-            Catégories (orders CSV)
+            Categories (orders CSV)
             <input
               value={form.categoriesCsv}
               onChange={(event) =>
-                setForm((prev) => ({ ...prev, categoriesCsv: event.target.value }))
+                setForm((prev) => ({
+                  ...prev,
+                  categoriesCsv: event.target.value,
+                }))
               }
               placeholder="0,1,2"
             />
@@ -140,7 +165,7 @@ export default function AnimeEditModal({ anime, categories, onClose, onSave }: P
                 setForm((prev) => ({ ...prev, favorite: event.target.checked }))
               }
             />
-            Favori
+            Favorite
           </label>
         </div>
 
@@ -160,16 +185,18 @@ export default function AnimeEditModal({ anime, categories, onClose, onSave }: P
           <textarea
             rows={4}
             value={form.notes}
-            onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, notes: event.target.value }))
+            }
           />
         </label>
 
         <p className="meta-line">
-          Catégories disponibles:{" "}
+          Available categories:{" "}
           {categories
             .slice()
             .sort((a, b) => a.order - b.order)
-            .map((cat) => `${cat.order}:${cat.name || "sans nom"}`)
+            .map((cat) => `${cat.order}:${cat.name || "unnamed"}`)
             .join(" • ")}
         </p>
       </div>

@@ -8,7 +8,7 @@ export default function ReposSection({ repos }: Props) {
   return (
     <section className="panel" id="repos">
       <div className="panel-head">
-        <h2>Repos extensions</h2>
+        <h2>Extension repos</h2>
         <p>{repos.length} repos</p>
       </div>
       <div className="kv-list">
@@ -19,8 +19,8 @@ export default function ReposSection({ repos }: Props) {
             <p>Short name: {repo.shortName || "-"}</p>
             <p>Website: {repo.website || "-"}</p>
             <p>Fingerprint: {repo.signingKeyFingerprint || "-"}</p>
-            <p>Auteur: {repo.author || "-"}</p>
-            <p>Visible: {repo.isVisible ? "Oui" : "Non"}</p>
+            <p>Author: {repo.author || "-"}</p>
+            <p>Visible: {repo.isVisible ? "Yes" : "No"}</p>
           </article>
         ))}
       </div>

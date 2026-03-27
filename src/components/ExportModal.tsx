@@ -43,18 +43,28 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="modal-content" onClick={(event) => event.stopPropagation()}>
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <div
+        className="modal-content"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="modal-actions">
           <button type="button" className="modal-close" onClick={onClose}>
-            Fermer
+            Close
           </button>
           <button type="button" className="modal-save" onClick={triggerExport}>
-            Exporter
+            Export
           </button>
         </div>
         <h3>Export</h3>
-        <p className="muted">Choisis précisément quoi exporter et dans quel format.</p>
+        <p className="muted">
+          Choose exactly what to export and in which format.
+        </p>
 
         <div className="edit-grid">
           <label>
@@ -62,7 +72,10 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
             <select
               value={options.format}
               onChange={(event) =>
-                setOptions((prev) => ({ ...prev, format: event.target.value as "json" | "tachibk" }))
+                setOptions((prev) => ({
+                  ...prev,
+                  format: event.target.value as "json" | "tachibk",
+                }))
               }
             >
               <option value="json">JSON</option>
@@ -71,21 +84,23 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
           </label>
 
           <label>
-            Catégorie (filtre)
+            Category (filter)
             <select
               value={String(options.categoryFilter)}
               onChange={(event) =>
                 setOptions((prev) => ({
                   ...prev,
                   categoryFilter:
-                    event.target.value === "all" ? "all" : Number.parseInt(event.target.value, 10),
+                    event.target.value === "all"
+                      ? "all"
+                      : Number.parseInt(event.target.value, 10),
                 }))
               }
             >
-              <option value="all">Toutes</option>
+              <option value="all">All</option>
               {categoryOptions.map((cat) => (
                 <option key={cat.order} value={cat.order}>
-                  {cat.order} - {cat.name || "sans nom"}
+                  {cat.order} - {cat.name || "unnamed"}
                 </option>
               ))}
             </select>
@@ -96,10 +111,13 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
               type="checkbox"
               checked={options.onlyWithExternalTracker}
               onChange={(event) =>
-                setOptions((prev) => ({ ...prev, onlyWithExternalTracker: event.target.checked }))
+                setOptions((prev) => ({
+                  ...prev,
+                  onlyWithExternalTracker: event.target.checked,
+                }))
               }
             />
-            Anime avec tracker externe
+            Anime with external tracker
           </label>
 
           <label className="edit-check">
@@ -107,14 +125,17 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
               type="checkbox"
               checked={options.minExternalScoreEnabled}
               onChange={(event) =>
-                setOptions((prev) => ({ ...prev, minExternalScoreEnabled: event.target.checked }))
+                setOptions((prev) => ({
+                  ...prev,
+                  minExternalScoreEnabled: event.target.checked,
+                }))
               }
             />
-            Note externe min
+            Minimum external score
           </label>
 
           <label>
-            Valeur note min
+            Minimum score value
             <input
               type="number"
               step="0.1"
@@ -131,14 +152,17 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
         </div>
 
         <div className="detail-block">
-          <h4>Sections à inclure</h4>
+          <h4>Sections to include</h4>
           <div className="edit-grid">
             <label className="edit-check">
               <input
                 type="checkbox"
                 checked={options.includeAnime}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includeAnime: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includeAnime: event.target.checked,
+                  }))
                 }
               />
               Anime
@@ -148,17 +172,23 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
                 type="checkbox"
                 checked={options.includeCategories}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includeCategories: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includeCategories: event.target.checked,
+                  }))
                 }
               />
-              Catégories
+              Categories
             </label>
             <label className="edit-check">
               <input
                 type="checkbox"
                 checked={options.includeSources}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includeSources: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includeSources: event.target.checked,
+                  }))
                 }
               />
               Sources
@@ -168,10 +198,13 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
                 type="checkbox"
                 checked={options.includePreferences}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includePreferences: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includePreferences: event.target.checked,
+                  }))
                 }
               />
-              Préférences
+              Preferences
             </label>
             <label className="edit-check">
               <input
@@ -184,14 +217,17 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
                   }))
                 }
               />
-              Prefs sources
+              Source preferences
             </label>
             <label className="edit-check">
               <input
                 type="checkbox"
                 checked={options.includeExtensions}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includeExtensions: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includeExtensions: event.target.checked,
+                  }))
                 }
               />
               Extensions
@@ -201,7 +237,10 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
                 type="checkbox"
                 checked={options.includeRepos}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includeRepos: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includeRepos: event.target.checked,
+                  }))
                 }
               />
               Repos
@@ -211,10 +250,13 @@ export default function ExportModal({ backup, categories, onClose }: Props) {
                 type="checkbox"
                 checked={options.includeCustomButtons}
                 onChange={(event) =>
-                  setOptions((prev) => ({ ...prev, includeCustomButtons: event.target.checked }))
+                  setOptions((prev) => ({
+                    ...prev,
+                    includeCustomButtons: event.target.checked,
+                  }))
                 }
               />
-              Boutons
+              Buttons
             </label>
           </div>
         </div>

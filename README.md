@@ -1,37 +1,56 @@
-# Tachibk Viewer (React + Vite)
+# Tachibk Viewer
 
-Lecteur local de sauvegardes AniZen/Tachiyomi `.tachibk`.
+Local viewer for AniZen/Tachiyomi `.tachibk` backups built with React and Vite.
 
-## Architecture (tâches séparées)
+## Architecture
 
 1. `src/lib/protoSchema.ts`
-Schéma ProtoBuf (numéros de champs issus du code AniZen) pour décoder `Backup` et `LegacyBackup`.
+ProtoBuf schema derived from the AniZen backup model. It decodes `Backup` and `LegacyBackup`.
 
 2. `src/lib/backupParser.ts`
-Pipeline de récupération des données:
-- détection GZip via magic bytes `1f 8b`
-- décompression (`pako`)
-- détection legacy (`BackupDetect`)
-- décodage ProtoBuf (`protobufjs`)
-- normalisation vers un modèle UI.
+Backup recovery pipeline:
+- GZip detection via magic bytes `1f 8b`
+- decompression with `pako`
+- legacy backup detection with `BackupDetect`
+- ProtoBuf decoding with `protobufjs`
+- normalization into a UI-friendly model
 
 3. `src/workers/backupWorker.ts`
-Sous-agent local (Web Worker): parsing isolé hors thread UI.
+Local worker used to keep parsing off the main UI thread.
 
 4. `src/lib/workerClient.ts`
-Pont principal <-> worker.
+Main thread to worker bridge.
 
-5. UI React (`src/App.tsx` + `src/components/*`)
-Affichage synthétique + table anime + aperçu préférences.
+5. React UI (`src/App.tsx` + `src/components/*`)
+Summary cards, anime library, advanced details, category/source views, repo browser, and export modal.
 
-## Démarrage
+## Features
+
+- Import `.tachibk` files locally
+- Browse the local file history stored in the browser
+- Edit anime metadata in a dedicated modal
+- Open a full advanced details page for any anime
+- Export filtered subsets as `JSON` or AniZen-compatible `tachibk`
+- Navigate from clickable summary cards to detailed sections
+
+## Filters
+
+The export modal lets you filter by:
+
+- anime category
+- presence of external trackers
+- minimum external score
+- sections to include in the export
+
+## Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Limites actuelles
+## Notes
 
-- Les préférences sont affichées avec une heuristique de décodage (bool/int/float/string/set).
-- Le contenu APK des extensions n'est pas listé (compte uniquement), pour garder l'UI rapide.
+- Preferences are decoded with heuristics because their payloads can vary by value type.
+- Extension APK bytes are preserved when exporting `tachibk` files.
+- The `tachibk` export aims to remain compatible with AniZen backup readers.
