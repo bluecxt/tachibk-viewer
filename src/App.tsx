@@ -3,6 +3,7 @@ import AnimeTable from "./components/AnimeTable";
 import AnimeFullDetailsSection from "./components/AnimeFullDetailsSection";
 import CategoriesSection from "./components/CategoriesSection";
 import CustomButtonsSection from "./components/CustomButtonsSection";
+import ExportModal from "./components/ExportModal";
 import ExtensionsSection from "./components/ExtensionsSection";
 import PreferenceTable from "./components/PreferenceTable";
 import ReposSection from "./components/ReposSection";
@@ -38,6 +39,7 @@ export default function App() {
   const [backup, setBackup] = useState<UiBackup | null>(null);
   const [section, setSection] = useState<SectionId>("library");
   const [advancedAnimeId, setAdvancedAnimeId] = useState<string | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [historyFiles, setHistoryFiles] = useState<StoredBackupFileMeta[]>([]);
   const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
 
@@ -142,24 +144,6 @@ export default function App() {
     setSection(target as SectionId);
   }
 
-  function exportCurrentBackupJson() {
-    if (!backup) return;
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      fileName,
-      data: backup,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `tachibk-viewer-export-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   return (
     <main className="app-shell">
       <aside className="sidebar panel">
@@ -184,10 +168,10 @@ export default function App() {
         <button
           type="button"
           className="upload-label export-btn"
-          onClick={exportCurrentBackupJson}
+          onClick={() => setShowExportModal(true)}
           disabled={!backup}
         >
-          Export JSON
+          Export
         </button>
 
         <nav className="side-nav">
@@ -317,6 +301,14 @@ export default function App() {
           <CustomButtonsSection customButtons={backup.customButtons} />
         )}
       </section>
+
+      {backup && showExportModal && (
+        <ExportModal
+          backup={backup}
+          categories={backup.categories}
+          onClose={() => setShowExportModal(false)}
+        />
+      )}
     </main>
   );
 }
