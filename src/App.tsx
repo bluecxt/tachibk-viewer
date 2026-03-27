@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AnimeTable from "./components/AnimeTable";
+import AnimeFullDetailsSection from "./components/AnimeFullDetailsSection";
 import CategoriesSection from "./components/CategoriesSection";
 import PreferenceTable from "./components/PreferenceTable";
 import SourcesSection from "./components/SourcesSection";
@@ -17,6 +18,7 @@ import type { UiBackup } from "./lib/types";
 type SectionId =
   | "summary"
   | "library"
+  | "advanced"
   | "categories"
   | "sources"
   | "preferences";
@@ -27,6 +29,7 @@ export default function App() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [backup, setBackup] = useState<UiBackup | null>(null);
   const [section, setSection] = useState<SectionId>("library");
+  const [advancedAnimeId, setAdvancedAnimeId] = useState<string | null>(null);
   const [historyFiles, setHistoryFiles] = useState<StoredBackupFileMeta[]>([]);
   const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
 
@@ -34,6 +37,7 @@ export default function App() {
     () => [
       { id: "summary" as const, label: "Résumé" },
       { id: "library" as const, label: "Anime" },
+      { id: "advanced" as const, label: "Infos avancées" },
       { id: "categories" as const, label: "Catégories" },
       { id: "sources" as const, label: "Sources" },
       { id: "preferences" as const, label: "Préférences" },
@@ -59,6 +63,7 @@ export default function App() {
       const parsed = await parseBackupBufferWithWorker(buffer.slice(0));
       setBackup(parsed);
       setSection("library");
+      setAdvancedAnimeId(parsed.anime[0]?.id ?? null);
       await saveBackupFile(file, buffer);
       await refreshHistory();
     } catch (err) {
@@ -84,6 +89,7 @@ export default function App() {
       setBackup(parsed);
       setFileName(item.name);
       setSection("library");
+      setAdvancedAnimeId(parsed.anime[0]?.id ?? null);
     } catch (err) {
       setError(
         err instanceof Error
@@ -219,6 +225,20 @@ export default function App() {
             anime={backup.anime}
             categories={backup.categories}
             onUpdateAnime={handleUpdateAnime}
+            onOpenFullDetails={(animeId) => {
+              setAdvancedAnimeId(animeId);
+              setSection("advanced");
+            }}
+          />
+        )}
+
+        {backup && section === "advanced" && (
+          <AnimeFullDetailsSection
+            anime={
+              backup.anime.find((item) => item.id === advancedAnimeId) ?? null
+            }
+            categories={backup.categories}
+            onBack={() => setSection("library")}
           />
         )}
 

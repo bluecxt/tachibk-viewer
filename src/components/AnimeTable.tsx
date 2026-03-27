@@ -6,6 +6,7 @@ type Props = {
   anime: UiAnime[];
   categories: UiCategory[];
   onUpdateAnime: (anime: UiAnime) => void;
+  onOpenFullDetails: (animeId: string) => void;
 };
 
 type SortBy =
@@ -81,6 +82,7 @@ export default function AnimeTable({
   anime,
   categories,
   onUpdateAnime,
+  onOpenFullDetails,
 }: Props) {
   const [filter, setFilter] = useState("");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
@@ -320,13 +322,25 @@ export default function AnimeTable({
             className="modal-content"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              type="button"
-              className="modal-close"
-              onClick={() => setSelected(null)}
-            >
-              Fermer
-            </button>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-save"
+                onClick={() => {
+                  onOpenFullDetails(selected.id);
+                  setSelected(null);
+                }}
+              >
+                Infos avancées
+              </button>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setSelected(null)}
+              >
+                Fermer
+              </button>
+            </div>
             <h3>{selected.customTitle || selected.title || "(sans titre)"}</h3>
             <p className="muted">{selected.sourceName || selected.source}</p>
 
@@ -334,10 +348,6 @@ export default function AnimeTable({
               <p>
                 <span>ID entrée</span>
                 <b>{selected.entryId ?? "-"}</b>
-              </p>
-              <p>
-                <span>Parent ID</span>
-                <b>{selected.parentId ?? "-"}</b>
               </p>
               <p>
                 <span>Ajout</span>
@@ -372,7 +382,7 @@ export default function AnimeTable({
                 <b>{selected.episodes.filter((ep) => ep.bookmark).length}</b>
               </p>
               <p>
-                <span>Historique</span>
+                <span>Historique lecture</span>
                 <b>{selected.history.length}</b>
               </p>
               <p>
